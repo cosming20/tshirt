@@ -20,32 +20,32 @@ export function ProductExperience({ images }: { images: string[] }) {
   const checkoutHref = STRIPE_LINKS[size];
 
   return (
-    <main className="min-h-dvh bg-panel">
-      <header className="px-6 py-4 sm:px-10">
-        <span className="font-display text-sm tracking-tight">
+    <main className="min-h-dvh bg-paper">
+      <header className="px-6 py-5 sm:px-10">
+        <span className="font-display text-sm uppercase tracking-tight">
           {PRODUCT.nav.brand}
         </span>
       </header>
 
-      <section className="grid gap-10 px-6 pb-16 sm:px-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-        <div>
-          <div className="relative aspect-[4/5] w-full overflow-hidden bg-ink/5">
+      <section className="grid gap-12 px-6 pb-20 sm:px-10 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+        <div className="animate-rise-in">
+          <div className="relative aspect-[4/5] w-full overflow-hidden border border-ink/10 bg-ink">
             {images.length > 0 ? (
               <Image
                 src={images[activeImage]}
-                alt={PRODUCT.name}
+                alt={`${PRODUCT.name} — fotografie produs`}
                 fill
                 priority
                 sizes="(min-width: 1024px) 55vw, 100vw"
-                className="object-cover"
+                className="object-cover opacity-90"
               />
             ) : (
-              <div className="flex h-full items-center justify-center px-8 text-center text-sm text-ink/50">
+              <div className="flex h-full items-center justify-center px-8 text-center font-mono text-sm text-paper/60">
                 Adaugă imagini în /public/product pentru a le vedea aici.
               </div>
             )}
 
-            <h1 className="font-display pointer-events-none absolute left-4 top-4 max-w-[90%] text-4xl uppercase leading-[0.9] tracking-tight text-ink mix-blend-normal sm:text-6xl lg:text-7xl">
+            <h1 className="font-display pointer-events-none absolute left-4 top-4 max-w-[92%] text-4xl uppercase leading-[0.92] tracking-tight text-paper drop-shadow-[2px_2px_0_rgba(13,12,17,0.6)] sm:text-6xl lg:text-7xl">
               {PRODUCT.name}
             </h1>
           </div>
@@ -57,8 +57,10 @@ export function ProductExperience({ images }: { images: string[] }) {
                   key={src}
                   type="button"
                   onClick={() => setActiveImage(i)}
-                  className={`relative h-20 w-16 flex-shrink-0 overflow-hidden border-2 transition sm:h-24 sm:w-20 ${
-                    i === activeImage ? "border-accent" : "border-transparent"
+                  aria-label={`Vezi imaginea ${i + 1}`}
+                  aria-current={i === activeImage}
+                  className={`relative h-20 w-16 flex-shrink-0 overflow-hidden border-2 transition-all duration-150 hover:-translate-y-0.5 sm:h-24 sm:w-20 ${
+                    i === activeImage ? "border-accent" : "border-transparent hover:border-ink/30"
                   }`}
                 >
                   <Image src={src} alt="" fill sizes="80px" className="object-cover" />
@@ -68,10 +70,18 @@ export function ProductExperience({ images }: { images: string[] }) {
           )}
         </div>
 
-        <div className="flex max-w-md flex-col gap-6">
-          <p className="text-sm leading-relaxed text-ink/80">
-            {PRODUCT.description}
-          </p>
+        <div
+          className="flex max-w-md flex-col gap-7 animate-rise-in"
+          style={{ animationDelay: "0.1s" }}
+        >
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">
+              {PRODUCT.eyebrow}
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-ink/75">
+              {PRODUCT.description}
+            </p>
+          </div>
 
           <ul className="space-y-1 text-xs font-semibold uppercase tracking-wide">
             {DETAIL_PANELS.map((panel) => (
@@ -88,16 +98,20 @@ export function ProductExperience({ images }: { images: string[] }) {
           </ul>
 
           <div>
+            <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.15em] text-ink/50">
+              Mărime
+            </p>
             <div className="flex gap-2">
               {SIZES.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setSize(s)}
-                  className={`h-9 w-9 border text-xs font-semibold transition ${
+                  aria-pressed={s === size}
+                  className={`h-10 w-10 border font-mono text-xs font-bold transition-all duration-150 active:scale-90 ${
                     s === size
                       ? "border-accent bg-accent text-accent-ink"
-                      : "border-ink/30 text-ink hover:border-ink"
+                      : "border-ink/25 text-ink hover:border-ink"
                   }`}
                 >
                   {s}
@@ -111,24 +125,26 @@ export function ProductExperience({ images }: { images: string[] }) {
             )}
           </div>
 
-          <p className="font-display text-3xl">{PRODUCT.price}</p>
+          <div className="flex items-end justify-between border-t border-ink/15 pt-5">
+            <p className="font-display text-3xl">{PRODUCT.price}</p>
 
-          <a
-            href={checkoutHref ?? "#"}
-            target={checkoutHref ? "_blank" : undefined}
-            rel={checkoutHref ? "noopener noreferrer" : undefined}
-            aria-disabled={!checkoutHref}
-            className={`hard-shadow inline-flex w-fit items-center justify-center bg-accent px-8 py-3 font-display text-sm uppercase tracking-wide text-accent-ink transition ${
-              checkoutHref
-                ? "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-                : "cursor-not-allowed opacity-50"
-            }`}
-            onClick={(e) => {
-              if (!checkoutHref) e.preventDefault();
-            }}
-          >
-            Adaugă în coș
-          </a>
+            <a
+              href={checkoutHref ?? "#"}
+              target={checkoutHref ? "_blank" : undefined}
+              rel={checkoutHref ? "noopener noreferrer" : undefined}
+              aria-disabled={!checkoutHref}
+              className={`hard-shadow inline-flex items-center justify-center bg-accent px-8 py-3.5 font-display text-sm uppercase tracking-wide text-accent-ink transition-all duration-150 ${
+                checkoutHref
+                  ? "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[6px] active:translate-y-[6px]"
+                  : "cursor-not-allowed opacity-50"
+              }`}
+              onClick={(e) => {
+                if (!checkoutHref) e.preventDefault();
+              }}
+            >
+              Cumpără acum
+            </a>
+          </div>
         </div>
       </section>
 

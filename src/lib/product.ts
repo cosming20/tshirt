@@ -18,9 +18,16 @@ export const STRIPE_LINKS: Record<Size, string | undefined> = {
 
 export const PRODUCT = {
   name: "NUMELE TRICOULUI TĂU",
+  eyebrow: "UN SINGUR TRICOU. FĂRĂ ALTCEVA.",
   price: "150 RON",
+  /** Preț numeric + valută ISO, folosite în datele structurate pentru SEO (nu afișate direct). */
+  priceAmount: 150,
+  currency: "RON",
   description:
     "Descriere scurtă a produsului — materiale, croială, print. Editează în src/lib/product.ts.",
+  /** O propoziție scurtă pentru <meta description> și pentru cardurile de share. */
+  seoDescription:
+    "Un singur tricou, o singură ediție. Comandă direct, plata se procesează securizat prin Stripe.",
   nav: {
     brand: "GUTA TRICOU",
   },

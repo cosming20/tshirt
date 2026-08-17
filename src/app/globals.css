@@ -1,23 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --bg-panel: #ededed;
-  --ink: #111111;
-  --accent: #6c4cf1;
-  --accent-ink: #ffffff;
+  --ink: #0d0c11;
+  --paper: #f4f2ec;
+  --accent: #5a31f4;
+  --accent-ink: #f4f2ec;
 }
 
 @theme inline {
-  --color-panel: var(--bg-panel);
   --color-ink: var(--ink);
+  --color-paper: var(--paper);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
 }
 
 body {
-  background: var(--bg-panel);
+  background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }
@@ -26,22 +27,39 @@ body {
   box-shadow: 6px 6px 0 0 var(--ink);
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
-  to {
-    opacity: 1;
-  }
-}
 
-@keyframes modal-in {
-  from {
-    opacity: 0;
-    transform: scale(0.94) translateY(10px);
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-rise-in {
+    animation: rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }

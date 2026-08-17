@@ -38,7 +38,7 @@ export function DetailsModal({
       onClick={requestClose}
     >
       <div
-        className={`hard-shadow grid w-full max-w-2xl grid-cols-[minmax(140px,180px)_1fr] border border-ink bg-panel transition-all duration-200 ease-out ${
+        className={`hard-shadow grid w-full max-w-2xl grid-cols-[minmax(140px,180px)_1fr] border border-ink bg-paper transition-all duration-200 ease-out ${
           closing
             ? "translate-y-1 scale-[0.97] opacity-0"
             : "animate-[modal-in_0.28s_cubic-bezier(0.16,1,0.3,1)]"
@@ -59,7 +59,7 @@ export function DetailsModal({
           </button>
         </div>
 
-        <nav className="border-r border-ink/20 p-6 text-xs font-semibold uppercase tracking-wide">
+        <nav className="border-r border-ink/20 p-6 font-mono text-[11px] uppercase tracking-[0.08em]">
           <ul className="space-y-3">
             {DETAIL_PANELS.map((panel) => (
               <li key={panel.id}>
@@ -67,7 +67,7 @@ export function DetailsModal({
                   type="button"
                   onClick={() => setActive(panel.id)}
                   className={`text-left transition-all duration-150 hover:translate-x-0.5 ${
-                    panel.id === active ? "text-ink" : "text-ink/50 hover:text-ink"
+                    panel.id === active ? "text-accent" : "text-ink/50 hover:text-ink"
                   }`}
                 >
                   [{panel.id === active ? "−" : "+"}] {panel.label}
