@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   DETAIL_PANELS,
   PRODUCT,
@@ -18,24 +18,13 @@ export function ProductExperience({ images }: { images: string[] }) {
   const [openPanel, setOpenPanel] = useState<DetailPanel | null>(null);
 
   const checkoutHref = STRIPE_LINKS[size];
-  const now = useMemo(
-    () =>
-      new Intl.DateTimeFormat("ro-RO", {
-        day: "numeric",
-        month: "numeric",
-        year: "numeric",
-      }).format(new Date(2026, 7, 17)),
-    [],
-  );
 
   return (
     <main className="min-h-dvh bg-panel">
-      <header className="flex items-center justify-between px-6 py-4 text-xs font-semibold uppercase tracking-wide sm:px-10">
+      <header className="px-6 py-4 sm:px-10">
         <span className="font-display text-sm tracking-tight">
           {PRODUCT.nav.brand}
         </span>
-        <span className="hidden text-ink/50 sm:inline">{now}</span>
-        <span>Coș 0</span>
       </header>
 
       <section className="grid gap-10 px-6 pb-16 sm:px-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
@@ -90,7 +79,7 @@ export function ProductExperience({ images }: { images: string[] }) {
                 <button
                   type="button"
                   onClick={() => setOpenPanel(panel.id)}
-                  className="text-ink/70 transition hover:text-ink"
+                  className="text-ink/70 transition-all duration-150 hover:translate-x-1 hover:text-ink active:scale-95"
                 >
                   [+] {panel.label}
                 </button>
