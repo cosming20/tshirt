@@ -5,20 +5,32 @@ import { PRODUCT, SIZES, STRIPE_LINKS } from "@/lib/product";
 import { SITE_URL } from "@/lib/site";
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
+/** Cât timp rămâne valid prețul din datele structurate înainte să trebuiască regenerat. */
+const PRICE_VALID_MONTHS = 6;
 
 function getProductImages(): string[] {
   const dir = path.join(process.cwd(), "public", "product");
   if (!fs.existsSync(dir)) return [];
 
-  return fs
+  const images = fs
     .readdirSync(dir)
     .filter((file) => IMAGE_EXTENSIONS.has(path.extname(file).toLowerCase()))
     .sort()
     .map((file) => `/product/${file}`);
+
+  if (images.length === 0) {
+    console.warn(
+      "[seo] public/product/ nu are nicio imagine — Product JSON-LD va publica image: [], ceea ce încalcă cerințele Google pentru rich results. Adaugă poze înainte de deploy.",
+    );
+  }
+
+  return images;
 }
 
 function getProductJsonLd(images: string[]) {
   const availableSizes = SIZES.filter((s) => STRIPE_LINKS[s]);
+  const priceValidUntil = new Date();
+  priceValidUntil.setMonth(priceValidUntil.getMonth() + PRICE_VALID_MONTHS);
 
   return {
     "@context": "https://schema.org",
@@ -32,6 +44,7 @@ function getProductJsonLd(images: string[]) {
       url: SITE_URL,
       priceCurrency: PRODUCT.currency,
       price: PRODUCT.priceAmount,
+      priceValidUntil: priceValidUntil.toISOString().slice(0, 10),
       availability:
         availableSizes.length > 0
           ? "https://schema.org/InStock"

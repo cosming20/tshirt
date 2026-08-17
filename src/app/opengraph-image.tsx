@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { PRODUCT } from "@/lib/product";
 
+export const alt = `${PRODUCT.name} — ${PRODUCT.nav.brand}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

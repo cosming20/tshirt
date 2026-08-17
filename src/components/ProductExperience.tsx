@@ -63,7 +63,13 @@ export function ProductExperience({ images }: { images: string[] }) {
                     i === activeImage ? "border-accent" : "border-transparent hover:border-ink/30"
                   }`}
                 >
-                  <Image src={src} alt="" fill sizes="80px" className="object-cover" />
+                  <Image
+                    src={src}
+                    alt={`${PRODUCT.name} — imagine ${i + 1}`}
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
                 </button>
               ))}
             </div>
