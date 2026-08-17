@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+  --bg-panel: #ededed;
+  --ink: #111111;
+  --accent: #6c4cf1;
+  --accent-ink: #ffffff;
+}
+
+@theme inline {
+  --color-panel: var(--bg-panel);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+body {
+  background: var(--bg-panel);
+  color: var(--ink);
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+.hard-shadow {
+  box-shadow: 6px 6px 0 0 var(--ink);
+}
