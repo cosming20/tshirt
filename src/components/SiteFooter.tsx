@@ -42,10 +42,7 @@ export function SiteFooter() {
             <h2 className="mb-1 font-mono text-[11px] uppercase tracking-[0.15em] text-ink/50">
               Retur și reclamații
             </h2>
-            <p>
-              Ai {RETURNS.windowDays} zile de la primire să returnezi produsul, fără să
-              justifici motivul.
-            </p>
+            <p>Ai {RETURNS.windowDays} zile de la primire să returnezi produsul.</p>
             <p className="text-ink/70">{RETURNS.note}</p>
             <p className="mt-1">
               Scrie-ne la{" "}

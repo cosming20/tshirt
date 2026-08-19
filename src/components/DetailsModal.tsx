@@ -15,6 +15,7 @@ export function DetailsModal({
   const [active, setActive] = useState<DetailPanel>(initialPanel);
   const [closing, setClosing] = useState(false);
   const activePanel = ALL_PANELS.find((p) => p.id === active)!;
+  const content = activePanel.content;
 
   const requestClose = () => {
     setClosing(true);
@@ -81,9 +82,17 @@ export function DetailsModal({
           key={active}
           className="flex h-full flex-col justify-center overflow-y-auto p-6 text-sm leading-relaxed animate-[fade-in_0.18s_ease-out]"
         >
-          {activePanel.content.kind === "list" ? (
+          {content.kind === "prose" ? (
+            <div className="space-y-3">
+              {content.paragraphs.map((paragraph, i) => (
+                <p key={i} className={i === content.paragraphs.length - 1 ? "font-semibold" : ""}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          ) : content.kind === "list" ? (
             <ul className="space-y-3">
-              {activePanel.content.items.map((line, i) => (
+              {content.items.map((line, i) => (
                 <li key={i}>{line}</li>
               ))}
             </ul>
@@ -93,7 +102,7 @@ export function DetailsModal({
                 <table className="w-full min-w-[280px] border-collapse text-left">
                   <thead>
                     <tr>
-                      {activePanel.content.columns.map((col) => (
+                      {content.columns.map((col) => (
                         <th
                           key={col}
                           className="border-b border-ink/20 pb-2 pr-4 font-mono text-[10px] uppercase tracking-[0.08em] text-ink/50"
@@ -104,7 +113,7 @@ export function DetailsModal({
                     </tr>
                   </thead>
                   <tbody>
-                    {activePanel.content.rows.map((row) => (
+                    {content.rows.map((row) => (
                       <tr key={row[0]}>
                         {row.map((cell, i) => (
                           <td
@@ -119,8 +128,8 @@ export function DetailsModal({
                   </tbody>
                 </table>
               </div>
-              {activePanel.content.note && (
-                <p className="mt-3 text-xs text-ink/50">{activePanel.content.note}</p>
+              {content.note && (
+                <p className="mt-3 text-xs text-ink/50">{content.note}</p>
               )}
             </div>
           )}

@@ -1,4 +1,4 @@
-import { COLORS, PRODUCT, SIZES, type Color, type Size } from "@/lib/product";
+import { COLORS, SIZES, type Color, type Size } from "@/lib/product";
 
 export type Variant = { size: Size; color: Color };
 
@@ -130,36 +130,35 @@ export function buildProviderHtml(order: Order): string {
 // --- Email 2: către client, confirmarea comenzii ---
 
 export function buildCustomerSubject(order: Order): string {
-  return `Comanda ta #${shortId(order.orderId)} e confirmată`;
+  return `Ți-am primit comanda #${shortId(order.orderId)}`;
 }
+
+/** Culorile site-ului, inline — clienții de email ignoră stylesheet-urile externe. */
+const MAIL_PAPER = "#f4f2ec";
+const MAIL_INK = "#0d0c11";
+const MAIL_ACCENT = "#5a31f4";
 
 export function buildCustomerHtml(order: Order): string {
   return `
-    <div style="font-family:sans-serif;font-size:14px;color:#111;line-height:1.5;">
-      <h2 style="margin:0 0 4px;">Mulțumim pentru comandă</h2>
-      <p style="margin:0 0 20px;color:#666;">Comanda #${shortId(order.orderId)} · ${formatTotal(order)}</p>
+    <div style="margin:0;padding:32px 16px;background:${MAIL_PAPER};font-family:Helvetica,Arial,sans-serif;">
+      <div style="max-width:440px;margin:0 auto;background:${MAIL_PAPER};color:${MAIL_INK};">
 
-      <p style="margin:0 0 16px;">
-        Am primit plata și am trimis comanda în producție. Tricoul se confecționează și pleacă
-        spre tine direct de la atelier.
-      </p>
+        <p style="margin:0 0 28px;font-size:12px;letter-spacing:0.08em;text-transform:lowercase;">
+          tricouamenda<span style="color:${MAIL_ACCENT};">.ro</span>
+        </p>
 
-      <table style="border-collapse:collapse;width:100%;max-width:480px;">
-        <thead>${tableHead()}</thead>
-        <tbody>${variantRows(order, "#ddd")}</tbody>
-      </table>
+        <h1 style="margin:0 0 12px;font-size:26px;line-height:1.15;text-transform:uppercase;letter-spacing:-0.5px;">
+          Ți-am primit comanda
+        </h1>
 
-      <h3 style="margin:24px 0 8px;font-size:14px;">Se livrează la</h3>
-      <p style="margin:0;">${safe(order.customerName)}</p>
-      <p style="margin:0;">${safe(order.shippingAddress, "adresa pe care ai completat-o la plată")}</p>
+        <p style="margin:0 0 24px;font-size:15px;line-height:1.6;">
+          Mulțumim. Revenim cu detalii despre livrare.
+        </p>
 
-      <p style="margin:24px 0 0;color:#666;font-size:13px;">
-        Factura fiscală vine separat, într-un email de la SmartBill.
-      </p>
-      <p style="margin:8px 0 0;color:#666;font-size:13px;">
-        Livrare în 2-4 zile lucrătoare. Ai 14 zile la dispoziție pentru retur, dacă produsul
-        e nepurtat. Dacă ceva nu e în regulă, răspunde la acest email.
-      </p>
-      <p style="margin:16px 0 0;font-size:13px;">${PRODUCT.nav.brand}</p>
+        <p style="margin:0;padding-top:20px;border-top:1px solid rgba(13,12,17,0.15);font-family:'Courier New',monospace;font-size:12px;letter-spacing:0.06em;color:rgba(13,12,17,0.55);">
+          Comanda #${shortId(order.orderId)}
+        </p>
+
+      </div>
     </div>`;
 }

@@ -65,32 +65,47 @@ export function getStockStatus(size: Size, color: Color) {
 }
 
 export const PRODUCT = {
-  name: "NUMELE TRICOULUI TĂU",
-  eyebrow: "UN SINGUR TRICOU. FĂRĂ ALTCEVA.",
+  name: "AMENDAT PENTRU ARTĂ",
+  eyebrow: "AMENDA E REALĂ. TRICOUL E ȘI MAI REAL.",
   price: "150 RON",
   /** Preț numeric + valută ISO, folosite în datele structurate pentru SEO (nu afișate direct). */
   priceAmount: 150,
   currency: "RON",
+  /** Cârligul, afișat lângă produs. Restul poveștii stă în panoul POVESTEA — slotul din pagină taie după 3 rânduri. */
   description:
-    "Descriere scurtă a produsului — materiale, croială, print. Editează în src/lib/product.ts.",
+    "Nu toate versurile rămân doar pe scenă. Unele vin și cu proces-verbal.",
   /** O propoziție scurtă pentru <meta description> și pentru cardurile de share. */
   seoDescription:
-    "Un singur tricou, o singură ediție. Comandă direct, plata se procesează securizat prin Stripe.",
+    "Tricou în ediție limitată care transformă o amendă primită pe scenă într-o piesă de merch. Nu toate versurile rămân doar pe scenă — unele vin și cu proces-verbal.",
   nav: {
     brand: "tricouamenda.ro",
   },
 };
 
-export type DetailPanel = "care" | "details" | "shipping" | "sizeGuide";
+export type DetailPanel = "story" | "care" | "details" | "shipping" | "sizeGuide";
 
 export type PanelContent =
+  | { kind: "prose"; paragraphs: string[] }
   | { kind: "list"; items: string[] }
   | { kind: "table"; columns: string[]; rows: string[][]; note?: string };
 
 export type Panel = { id: DetailPanel; label: string; content: PanelContent };
 
-/** Cele 3 panouri afișate ca linkuri sub descriere. Ghidul de mărimi are propriul link, lângă selectorul de mărime. */
+/** Panourile afișate ca linkuri sub descriere. Ghidul de mărimi are propriul link, lângă selectorul de mărime. */
 export const DETAIL_PANELS: Panel[] = [
+  {
+    id: "story",
+    label: "POVESTEA",
+    content: {
+      kind: "prose",
+      paragraphs: [
+        "AMENDAT PENTRU ARTĂ transformă amenda primită pe scenă într-o piesă de merch care vorbește singură. Un tricou pentru cei care înțeleg că uneori cea mai bună reclamă vine direct de la autorități.",
+        "Inspirat din incidentul devenit deja parte din poveste, designul pune amenda în centrul atenției — ca dovadă, trofeu și punchline în același timp.",
+        "Poartă-l la concert, pe stradă sau oriunde simți că ai prea multă libertate de exprimare pentru un singur outfit.",
+        "Limited drop. Amenda e reală. Tricoul e și mai real.",
+      ],
+    },
+  },
   {
     id: "care",
     label: "ÎNGRIJIRE",
@@ -112,7 +127,7 @@ export const DETAIL_PANELS: Panel[] = [
       items: [
         "100% bumbac, ~205 g/m².",
         "Croială clasică, fără cusături laterale.",
-        "Print digital DTG (Direct-to-Garment), nu serigrafie.",
+        "Print digital DTG (Direct-to-Garment).",
         "Confecționat în România.",
       ],
     },

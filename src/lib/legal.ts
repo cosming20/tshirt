@@ -23,6 +23,7 @@ export const MANUFACTURER = {
 
 export const RETURNS = {
   windowDays: 14,
+  /** Fraza afișată clientului. Dreptul legal de retur în 14 zile rămâne același, indiferent de formulare. */
   note: "Produsul trebuie să fie nepurtat și în ambalajul original. Contactează-ne înainte de a trimite coletul.",
 };
 

@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import Stripe from "stripe";
+import { SELLER } from "@/lib/legal";
 import {
   buildCustomerHtml,
   buildCustomerSubject,
@@ -73,6 +74,8 @@ async function sendOrderEmails(order: Order): Promise<void> {
           resend.emails.send({
             from,
             to: [providerEmail],
+            // Atelierul răspunde magazinului (ex. cu AWB-ul), nu clientului.
+            replyTo: SELLER.email,
             subject: buildProviderSubject(order),
             html: buildProviderHtml(order),
           }),
@@ -87,7 +90,9 @@ async function sendOrderEmails(order: Order): Promise<void> {
         resend.emails.send({
           from,
           to: [customerEmail],
-          replyTo: providerEmail,
+          // Expeditorul e o adresă no-reply, deci răspunsurile merg la contactul real
+          // al magazinului — nu la atelier, care nu are relația cu clientul.
+          replyTo: SELLER.email,
           subject: buildCustomerSubject(order),
           html: buildCustomerHtml(order),
         }),
