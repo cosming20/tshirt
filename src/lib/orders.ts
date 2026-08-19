@@ -1,43 +1,39 @@
-import type Stripe from "stripe";
 import { COLORS, PRODUCT, SIZES, type Color, type Size } from "@/lib/product";
 
-/**
- * Cheia custom field-ului "Culoare" pe care trebuie s-o setezi identic în
- * Stripe Dashboard pe fiecare din cele 5 Payment Links (Products > Payment
- * Links > [mărime] > Edit > Add custom field > Dropdown, key = "culoare",
- * cu opțiuni ale căror *chei* sunt exact "negru" și "alb" — vezi README).
- */
-const COLOR_CUSTOM_FIELD_KEY = "culoare";
+export type Variant = { size: Size; color: Color };
 
-/** Mapare Price ID Stripe -> mărime, completată din variabilele de mediu (server-only). */
-const PRICE_ID_TO_SIZE: Partial<Record<string, Size>> = {
-  [process.env.STRIPE_PRICE_ID_S ?? ""]: "S",
-  [process.env.STRIPE_PRICE_ID_M ?? ""]: "M",
-  [process.env.STRIPE_PRICE_ID_L ?? ""]: "L",
-  [process.env.STRIPE_PRICE_ID_XL ?? ""]: "XL",
-  [process.env.STRIPE_PRICE_ID_XXL ?? ""]: "XXL",
+/**
+ * Mapare Price ID Stripe -> variantă (mărime + culoare), completată din
+ * variabilele de mediu (server-only). Fiecare combinație e un preț distinct în
+ * Stripe, deci culoarea e determinată de ce a cumpărat clientul, nu de o
+ * alegere separată pe care ar putea s-o greșească la checkout.
+ */
+const PRICE_ID_TO_VARIANT: Partial<Record<string, Variant>> = {
+  [process.env.STRIPE_PRICE_ID_S_NEGRU ?? ""]: { size: "S", color: "negru" },
+  [process.env.STRIPE_PRICE_ID_S_ALB ?? ""]: { size: "S", color: "alb" },
+  [process.env.STRIPE_PRICE_ID_M_NEGRU ?? ""]: { size: "M", color: "negru" },
+  [process.env.STRIPE_PRICE_ID_M_ALB ?? ""]: { size: "M", color: "alb" },
+  [process.env.STRIPE_PRICE_ID_L_NEGRU ?? ""]: { size: "L", color: "negru" },
+  [process.env.STRIPE_PRICE_ID_L_ALB ?? ""]: { size: "L", color: "alb" },
+  [process.env.STRIPE_PRICE_ID_XL_NEGRU ?? ""]: { size: "XL", color: "negru" },
+  [process.env.STRIPE_PRICE_ID_XL_ALB ?? ""]: { size: "XL", color: "alb" },
+  [process.env.STRIPE_PRICE_ID_XXL_NEGRU ?? ""]: { size: "XXL", color: "negru" },
+  [process.env.STRIPE_PRICE_ID_XXL_ALB ?? ""]: { size: "XXL", color: "alb" },
 };
 
-export function resolveSizeFromPriceId(priceId: string | null | undefined): Size | undefined {
+export function resolveVariantFromPriceId(
+  priceId: string | null | undefined,
+): Variant | undefined {
   if (!priceId) return undefined;
-  return PRICE_ID_TO_SIZE[priceId];
-}
-
-export function resolveColorFromCustomFields(
-  customFields: Stripe.Checkout.Session.CustomField[] | null | undefined,
-): Color | undefined {
-  const field = customFields?.find((f) => f.key === COLOR_CUSTOM_FIELD_KEY);
-  const value = field?.dropdown?.value;
-  return COLORS.find((c) => c.id === value)?.id;
+  return PRICE_ID_TO_VARIANT[priceId];
 }
 
 export type OrderLine = {
-  size: Size | undefined;
-  color: Color | undefined;
+  variant: Variant | undefined;
   quantity: number;
 };
 
-export type ManufacturingOrder = {
+export type Order = {
   orderId: string;
   customerName: string | null;
   customerEmail: string | null;
@@ -47,50 +43,115 @@ export type ManufacturingOrder = {
   currency: string | null;
 };
 
-function colorLabel(color: Color | undefined): string {
-  return COLORS.find((c) => c.id === color)?.label ?? "necunoscută (verifică manual în Stripe)";
+const UNKNOWN = "necunoscut — verifică manual în Stripe";
+
+/** Datele vin de la client (nume, adresă), deci nu ajung niciodată neescapate în HTML-ul emailului. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function sizeLabel(size: Size | undefined): string {
-  return size && SIZES.includes(size) ? size : "necunoscută (verifică manual în Stripe)";
+function safe(value: string | null | undefined, fallback = "—"): string {
+  return value ? escapeHtml(value) : fallback;
 }
 
-export function buildOrderEmailSubject(order: ManufacturingOrder): string {
-  return `Comandă nouă ${PRODUCT.name} — #${order.orderId.slice(-8)}`;
+function sizeLabel(variant: Variant | undefined): string {
+  return variant && SIZES.includes(variant.size) ? variant.size : UNKNOWN;
 }
 
-export function buildOrderEmailHtml(order: ManufacturingOrder): string {
-  const rows = order.lines
+function colorLabel(variant: Variant | undefined): string {
+  return COLORS.find((c) => c.id === variant?.color)?.label ?? UNKNOWN;
+}
+
+function formatTotal(order: Order): string {
+  if (order.totalAmount == null || !order.currency) return UNKNOWN;
+  return `${(order.totalAmount / 100).toFixed(2)} ${order.currency.toUpperCase()}`;
+}
+
+function shortId(orderId: string): string {
+  return orderId.slice(-8).toUpperCase();
+}
+
+function variantRows(order: Order, borderColor: string): string {
+  return order.lines
     .map(
       (line) => `
       <tr>
-        <td style="padding:6px 12px;border-bottom:1px solid #ddd;">${sizeLabel(line.size)}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #ddd;">${colorLabel(line.color)}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #ddd;">${line.quantity}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${borderColor};">${sizeLabel(line.variant)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${borderColor};">${colorLabel(line.variant)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${borderColor};">${line.quantity}</td>
       </tr>`,
     )
     .join("");
+}
 
-  const total =
-    order.totalAmount != null && order.currency
-      ? `${(order.totalAmount / 100).toFixed(2)} ${order.currency.toUpperCase()}`
-      : "necunoscut";
-
+function tableHead(): string {
   return `
-    <div style="font-family:sans-serif;font-size:14px;color:#111;">
-      <h2 style="margin:0 0 12px;">Comandă nouă — ${PRODUCT.name}</h2>
-      <p style="margin:0 0 16px;">Comandă #${order.orderId}, total plătit ${total}.</p>
+    <tr>
+      <th style="text-align:left;padding:8px 12px;border-bottom:2px solid #111;">Mărime</th>
+      <th style="text-align:left;padding:8px 12px;border-bottom:2px solid #111;">Culoare</th>
+      <th style="text-align:left;padding:8px 12px;border-bottom:2px solid #111;">Bucăți</th>
+    </tr>`;
+}
+
+// --- Email 1: către producător, cu specificațiile de fabricație ---
+
+export function buildProviderSubject(order: Order): string {
+  return `Comandă nouă de producție — #${shortId(order.orderId)}`;
+}
+
+export function buildProviderHtml(order: Order): string {
+  return `
+    <div style="font-family:sans-serif;font-size:14px;color:#111;line-height:1.5;">
+      <h2 style="margin:0 0 4px;">Comandă nouă de producție</h2>
+      <p style="margin:0 0 20px;color:#666;">Comanda #${shortId(order.orderId)} · total încasat ${formatTotal(order)}</p>
+
       <table style="border-collapse:collapse;width:100%;max-width:480px;">
-        <thead>
-          <tr>
-            <th style="text-align:left;padding:6px 12px;border-bottom:2px solid #111;">Mărime</th>
-            <th style="text-align:left;padding:6px 12px;border-bottom:2px solid #111;">Culoare</th>
-            <th style="text-align:left;padding:6px 12px;border-bottom:2px solid #111;">Bucăți</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
+        <thead>${tableHead()}</thead>
+        <tbody>${variantRows(order, "#ddd")}</tbody>
       </table>
-      <p style="margin:16px 0 0;"><strong>Client:</strong> ${order.customerName ?? "—"} (${order.customerEmail ?? "—"})</p>
-      <p style="margin:4px 0 0;"><strong>Adresă livrare:</strong> ${order.shippingAddress ?? "necompletată — verifică manual în Stripe"}</p>
+
+      <h3 style="margin:24px 0 8px;font-size:14px;">Date de livrare</h3>
+      <p style="margin:0;">${safe(order.customerName)}</p>
+      <p style="margin:0;">${safe(order.customerEmail)}</p>
+      <p style="margin:0;">${safe(order.shippingAddress, "adresă necompletată — verifică în Stripe")}</p>
+    </div>`;
+}
+
+// --- Email 2: către client, confirmarea comenzii ---
+
+export function buildCustomerSubject(order: Order): string {
+  return `Comanda ta #${shortId(order.orderId)} e confirmată`;
+}
+
+export function buildCustomerHtml(order: Order): string {
+  return `
+    <div style="font-family:sans-serif;font-size:14px;color:#111;line-height:1.5;">
+      <h2 style="margin:0 0 4px;">Mulțumim pentru comandă</h2>
+      <p style="margin:0 0 20px;color:#666;">Comanda #${shortId(order.orderId)} · ${formatTotal(order)}</p>
+
+      <p style="margin:0 0 16px;">
+        Am primit plata și am trimis comanda în producție. Primești un mesaj cu numărul
+        de urmărire în momentul în care coletul pleacă spre tine.
+      </p>
+
+      <table style="border-collapse:collapse;width:100%;max-width:480px;">
+        <thead>${tableHead()}</thead>
+        <tbody>${variantRows(order, "#ddd")}</tbody>
+      </table>
+
+      <h3 style="margin:24px 0 8px;font-size:14px;">Se livrează la</h3>
+      <p style="margin:0;">${safe(order.customerName)}</p>
+      <p style="margin:0;">${safe(order.shippingAddress, "adresa pe care ai completat-o la plată")}</p>
+
+      <p style="margin:24px 0 0;color:#666;font-size:13px;">
+        Livrare în 2-4 zile lucrătoare. Ai 14 zile la dispoziție pentru retur, dacă produsul
+        e nepurtat. Dacă ceva nu e în regulă, răspunde la acest email.
+      </p>
+      <p style="margin:16px 0 0;font-size:13px;">${PRODUCT.nav.brand}</p>
     </div>`;
 }

@@ -21,9 +21,10 @@ export function ProductExperience({ images }: { images: string[] }) {
   const [color, setColor] = useState<Color>(COLORS[0].id);
   const [openPanel, setOpenPanel] = useState<DetailPanel | null>(null);
 
-  const checkoutHref = STRIPE_LINKS[size];
+  const checkoutHref = STRIPE_LINKS[size][color];
   const stock = getStockStatus(size, color);
   const canBuy = Boolean(checkoutHref) && !stock.isOutOfStock;
+  const colorLabel = COLORS.find((c) => c.id === color)?.label ?? color;
 
   return (
     <main className="min-h-dvh bg-paper">
@@ -112,7 +113,7 @@ export function ProductExperience({ images }: { images: string[] }) {
 
           <div>
             <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.15em] text-ink/50">
-              Culoare
+              Culoare · <span className="text-ink">{colorLabel}</span>
             </p>
             <div className="flex gap-2">
               {COLORS.map((c) => (
@@ -121,11 +122,12 @@ export function ProductExperience({ images }: { images: string[] }) {
                   type="button"
                   onClick={() => setColor(c.id)}
                   aria-pressed={c.id === color}
+                  aria-label={c.label}
                   title={c.label}
                   className={`h-8 w-8 rounded-full border-2 transition-all duration-150 active:scale-90 ${
                     c.id === color ? "border-accent" : "border-ink/25 hover:border-ink"
                   }`}
-                  style={{ backgroundColor: c.id === "negru" ? "#0d0c11" : "#f4f2ec" }}
+                  style={{ backgroundColor: c.swatch }}
                 />
               ))}
             </div>
@@ -163,11 +165,11 @@ export function ProductExperience({ images }: { images: string[] }) {
             </div>
             {!checkoutHref ? (
               <p className="mt-2 text-xs text-ink/50">
-                Mărimea {size} nu are încă un link de plată configurat.
+                {size} / {colorLabel} nu are încă un link de plată configurat.
               </p>
             ) : stock.isOutOfStock ? (
               <p className="mt-2 text-xs text-ink/50">
-                {size} / {COLORS.find((c) => c.id === color)?.label} — stoc epuizat.
+                {size} / {colorLabel} — stoc epuizat.
               </p>
             ) : stock.isLowStock ? (
               <p className="mt-2 text-xs text-accent">Au mai rămas {stock.remaining} bucăți.</p>

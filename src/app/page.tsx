@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ProductExperience } from "@/components/ProductExperience";
-import { PRODUCT, SIZES, STRIPE_LINKS } from "@/lib/product";
+import { COLORS, PRODUCT, SIZES, STRIPE_LINKS, getStockStatus } from "@/lib/product";
 import { SITE_URL } from "@/lib/site";
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
@@ -28,9 +28,31 @@ function getProductImages(): string[] {
 }
 
 function getProductJsonLd(images: string[]) {
-  const availableSizes = SIZES.filter((s) => STRIPE_LINKS[s]);
   const priceValidUntil = new Date();
   priceValidUntil.setMonth(priceValidUntil.getMonth() + PRICE_VALID_MONTHS);
+  const validUntil = priceValidUntil.toISOString().slice(0, 10);
+
+  // Câte un Offer per variantă, ca disponibilitatea să fie reală per mărime+culoare,
+  // nu un singur "în stoc" care ascunde variantele epuizate.
+  const offers = SIZES.flatMap((size) =>
+    COLORS.map((color) => {
+      const isSellable =
+        Boolean(STRIPE_LINKS[size][color.id]) && !getStockStatus(size, color.id).isOutOfStock;
+
+      return {
+        "@type": "Offer",
+        name: `${PRODUCT.name} — ${size}, ${color.label}`,
+        url: SITE_URL,
+        priceCurrency: PRODUCT.currency,
+        price: PRODUCT.priceAmount,
+        priceValidUntil: validUntil,
+        availability: isSellable
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+        itemCondition: "https://schema.org/NewCondition",
+      };
+    }),
+  );
 
   return {
     "@context": "https://schema.org",
@@ -39,18 +61,7 @@ function getProductJsonLd(images: string[]) {
     description: PRODUCT.seoDescription,
     image: images.map((img) => `${SITE_URL}${img}`),
     brand: { "@type": "Brand", name: PRODUCT.nav.brand },
-    offers: {
-      "@type": "Offer",
-      url: SITE_URL,
-      priceCurrency: PRODUCT.currency,
-      price: PRODUCT.priceAmount,
-      priceValidUntil: priceValidUntil.toISOString().slice(0, 10),
-      availability:
-        availableSizes.length > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      itemCondition: "https://schema.org/NewCondition",
-    },
+    offers,
   };
 }
 

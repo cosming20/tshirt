@@ -5,29 +5,39 @@ export type Color = "negru" | "alb";
 
 export const SIZES: Size[] = ["S", "M", "L", "XL", "XXL"];
 
-/**
- * Id-ul fiecărei culori dublează cheia de opțiune pe care o setezi în Stripe
- * pentru custom field-ul "Culoare" (vezi README) — nu doar eticheta afișată.
- */
-export const COLORS: { id: Color; label: string }[] = [
-  { id: "negru", label: "Negru" },
-  { id: "alb", label: "Alb" },
+export const COLORS: { id: Color; label: string; swatch: string }[] = [
+  { id: "negru", label: "Negru", swatch: "#0d0c11" },
+  { id: "alb", label: "Alb", swatch: "#f4f2ec" },
 ];
 
 /**
- * Fiecare mărime are propriul Stripe Payment Link (produsul din Stripe poate
- * fi acelasi, dar fiecare mărime = un Payment Link separat, cel mai simplu
- * mod de a gestiona variante fără cod custom pe partea de checkout). Culoarea
- * se alege direct pe pagina de checkout Stripe, printr-un custom field
- * dropdown (vezi README) — un singur link acoperă ambele culori.
+ * Fiecare combinație mărime+culoare e o variantă distinctă în Stripe: un singur
+ * produs cu 10 prețuri, fiecare cu propriul Payment Link. Culoarea e deja
+ * fixată de link, deci clientul o alege o singură dată — pe site — și nu mai
+ * poate apărea o nepotrivire între ce a ales și ce se produce.
  * Completează linkurile în .env.local (vezi .env.local.example).
  */
-export const STRIPE_LINKS: Record<Size, string | undefined> = {
-  S: process.env.NEXT_PUBLIC_STRIPE_LINK_S,
-  M: process.env.NEXT_PUBLIC_STRIPE_LINK_M,
-  L: process.env.NEXT_PUBLIC_STRIPE_LINK_L,
-  XL: process.env.NEXT_PUBLIC_STRIPE_LINK_XL,
-  XXL: process.env.NEXT_PUBLIC_STRIPE_LINK_XXL,
+export const STRIPE_LINKS: Record<Size, Record<Color, string | undefined>> = {
+  S: {
+    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_S_NEGRU,
+    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_S_ALB,
+  },
+  M: {
+    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_M_NEGRU,
+    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_M_ALB,
+  },
+  L: {
+    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_L_NEGRU,
+    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_L_ALB,
+  },
+  XL: {
+    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_XL_NEGRU,
+    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_XL_ALB,
+  },
+  XXL: {
+    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_XXL_NEGRU,
+    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_XXL_ALB,
+  },
 };
 
 /**
