@@ -59,6 +59,28 @@ deci eșecul unuia nu îl blochează pe celălalt.
 Testare locală: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
 (Stripe CLI) sau `stripe trigger checkout.session.completed`.
 
+## Adresa de contact (contact@tricouamenda.ro)
+
+Adresa publică din footer nu e un inbox real — e redirectată către inboxul personal, ca
+să nu publicăm o adresă privată. Fluxul: Resend primește mesajul pe domeniu, trimite
+evenimentul `email.received` către `/api/resend/inbound`, care verifică semnătura Svix
+pe corpul brut și cheamă `emails.receiving.forward` cu `passthrough: true` (mesaj
+original + atașamente, neatinse).
+
+1. Resend → Domains → `tricouamenda.ro` → activează **Receiving**, apoi adaugă în Vercel
+   recordul MX primit. Nu intră în conflict cu trimiterea, care folosește subdomeniul
+   `send.`
+2. Resend → Webhooks → Add endpoint → `https://tricouamenda.ro/api/resend/inbound`,
+   eveniment `email.received`. Signing secret → `RESEND_WEBHOOK_SECRET`.
+3. `CONTACT_FORWARD_TO` = adresa reală unde vrei mesajele.
+
+Ruta întoarce **500** la eșec (spre deosebire de webhook-ul de comenzi, care întoarce
+200), ca Resend să reîncerce: aici o reîncercare chiar poate reuși, iar un email de
+client pierdut nu se recuperează.
+
+Ca să și *răspunzi* de pe adresa magazinului, adaugă-o în Gmail la Send mail as, cu SMTP
+`smtp.resend.com:465`, user `resend`, parola = API key-ul.
+
 ## Facturare (SmartBill, fără cod)
 
 Facturile fiscale nu sunt generate de aplicație — SmartBill se conectează direct la
