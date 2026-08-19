@@ -3,10 +3,13 @@
 import Image from "next/image";
 import { useState } from "react";
 import {
+  COLORS,
   DETAIL_PANELS,
   PRODUCT,
   SIZES,
   STRIPE_LINKS,
+  getStockStatus,
+  type Color,
   type DetailPanel,
   type Size,
 } from "@/lib/product";
@@ -15,15 +18,19 @@ import { DetailsModal } from "@/components/DetailsModal";
 export function ProductExperience({ images }: { images: string[] }) {
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState<Size>("M");
+  const [color, setColor] = useState<Color>(COLORS[0].id);
   const [openPanel, setOpenPanel] = useState<DetailPanel | null>(null);
 
   const checkoutHref = STRIPE_LINKS[size];
+  const stock = getStockStatus(size, color);
+  const canBuy = Boolean(checkoutHref) && !stock.isOutOfStock;
 
   return (
     <main className="min-h-dvh bg-paper">
       <header className="px-6 py-5 sm:px-10">
-        <span className="font-display text-sm uppercase tracking-tight">
-          {PRODUCT.nav.brand}
+        <span className="font-display text-sm lowercase tracking-tight">
+          {PRODUCT.nav.brand.replace(/\.\w+$/, "")}
+          <span className="text-accent">{PRODUCT.nav.brand.match(/\.\w+$/)?.[0]}</span>
         </span>
       </header>
 
@@ -105,8 +112,38 @@ export function ProductExperience({ images }: { images: string[] }) {
 
           <div>
             <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.15em] text-ink/50">
-              Mărime
+              Culoare
             </p>
+            <div className="flex gap-2">
+              {COLORS.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setColor(c.id)}
+                  aria-pressed={c.id === color}
+                  title={c.label}
+                  className={`h-8 w-8 rounded-full border-2 transition-all duration-150 active:scale-90 ${
+                    c.id === color ? "border-accent" : "border-ink/25 hover:border-ink"
+                  }`}
+                  style={{ backgroundColor: c.id === "negru" ? "#0d0c11" : "#f4f2ec" }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-ink/50">
+                Mărime
+              </p>
+              <button
+                type="button"
+                onClick={() => setOpenPanel("sizeGuide")}
+                className="font-mono text-[11px] uppercase tracking-[0.1em] text-ink/50 underline underline-offset-2 transition-colors hover:text-ink"
+              >
+                Ghid mărimi
+              </button>
+            </div>
             <div className="flex gap-2">
               {SIZES.map((s) => (
                 <button
@@ -124,31 +161,37 @@ export function ProductExperience({ images }: { images: string[] }) {
                 </button>
               ))}
             </div>
-            {!checkoutHref && (
+            {!checkoutHref ? (
               <p className="mt-2 text-xs text-ink/50">
                 Mărimea {size} nu are încă un link de plată configurat.
               </p>
-            )}
+            ) : stock.isOutOfStock ? (
+              <p className="mt-2 text-xs text-ink/50">
+                {size} / {COLORS.find((c) => c.id === color)?.label} — stoc epuizat.
+              </p>
+            ) : stock.isLowStock ? (
+              <p className="mt-2 text-xs text-accent">Au mai rămas {stock.remaining} bucăți.</p>
+            ) : null}
           </div>
 
           <div className="flex items-end justify-between border-t border-ink/15 pt-5">
             <p className="font-display text-3xl">{PRODUCT.price}</p>
 
             <a
-              href={checkoutHref ?? "#"}
-              target={checkoutHref ? "_blank" : undefined}
-              rel={checkoutHref ? "noopener noreferrer" : undefined}
-              aria-disabled={!checkoutHref}
+              href={canBuy ? checkoutHref : "#"}
+              target={canBuy ? "_blank" : undefined}
+              rel={canBuy ? "noopener noreferrer" : undefined}
+              aria-disabled={!canBuy}
               className={`hard-shadow inline-flex items-center justify-center bg-accent px-8 py-3.5 font-display text-sm uppercase tracking-wide text-accent-ink transition-all duration-150 ${
-                checkoutHref
+                canBuy
                   ? "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[6px] active:translate-y-[6px]"
                   : "cursor-not-allowed opacity-50"
               }`}
               onClick={(e) => {
-                if (!checkoutHref) e.preventDefault();
+                if (!canBuy) e.preventDefault();
               }}
             >
-              Cumpără acum
+              {stock.isOutOfStock ? "Stoc epuizat" : "Cumpără acum"}
             </a>
           </div>
         </div>
