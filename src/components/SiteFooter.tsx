@@ -31,7 +31,6 @@ export function SiteFooter() {
             <p className="font-semibold">{SELLER.name}</p>
             <Field label="CUI" value={SELLER.cui} />
             <Field label="Reg. Com." value={SELLER.regCom} />
-            <Field label="Sediu" value={SELLER.address} />
             <p className="mt-1">
               <a className="underline underline-offset-2" href={`mailto:${SELLER.email}`}>
                 {SELLER.email}
