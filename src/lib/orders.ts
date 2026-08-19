@@ -149,6 +149,9 @@ export function buildCustomerHtml(order: Order): string {
       <p style="margin:0;">${safe(order.shippingAddress, "adresa pe care ai completat-o la plată")}</p>
 
       <p style="margin:24px 0 0;color:#666;font-size:13px;">
+        Factura fiscală vine separat, într-un email de la SmartBill.
+      </p>
+      <p style="margin:8px 0 0;color:#666;font-size:13px;">
         Livrare în 2-4 zile lucrătoare. Ai 14 zile la dispoziție pentru retur, dacă produsul
         e nepurtat. Dacă ceva nu e în regulă, răspunde la acest email.
       </p>

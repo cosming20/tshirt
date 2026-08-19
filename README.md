@@ -23,35 +23,52 @@ npm run dev
 
 ## Configurare Stripe (checkout)
 
-1. Pentru fiecare mărime (S/M/L/XL/XXL), creează un **Payment Link** separat în
-   Stripe Dashboard → Payment Links → New, folosind produsul existent.
-2. Pe fiecare din cele 5 linkuri, adaugă un **custom field** pentru culoare:
-   Edit link → Add custom field → tip **Dropdown**, key = `culoare`, cu două opțiuni
-   ale căror **chei** (nu doar etichetele) sunt exact `negru` și `alb`. Un singur link
-   acoperă ambele culori — clientul alege culoarea direct la checkout Stripe.
-3. Pune cele 5 URL-uri în `.env.local` (`NEXT_PUBLIC_STRIPE_LINK_*`).
-4. Ia **Price ID**-ul din spatele fiecărui link (Products → [mărime] → sub preț) și
-   pune-le în `STRIPE_PRICE_ID_*` — sunt folosite de webhook ca să știe ce mărime s-a
-   vândut.
+Structura: **un produs cu 10 prețuri** (5 mărimi × 2 culori), fiecare cu propriul
+Payment Link. Culoarea e fixată de link, deci selecția de pe site determină complet ce
+se cumpără — nu există pas în care clientul ar putea alege altceva decât ce a văzut.
 
-## Configurare notificare furnizor (webhook + email)
+1. Creează produsul cu primul preț (150 RON, **tax behavior: inclusive**), apoi adaugă
+   celelalte 9 prețuri din Product → Pricing → Add another price. Dă fiecăruia un
+   nickname de forma `S · negru`.
+2. Adaugă pe produs metadata `cod_produs` = codul din nomenclatorul SmartBill.
+3. Creează 10 Payment Links, câte unul per preț. Pe **fiecare** activează:
+   - **Collect shipping address** (altfel nu ai unde livra)
+   - **Billing address: required** (necesar pentru factură)
+   - **Adjustable quantity** min 1 / max 10
+4. Pune cele 10 URL-uri în `NEXT_PUBLIC_STRIPE_LINK_<MĂRIME>_<CULOARE>` și cele 10
+   **Price ID**-uri (`price_…`, nu `prod_…`) în `STRIPE_PRICE_ID_<MĂRIME>_<CULOARE>`.
+   Webhook-ul folosește Price ID-ul ca să știe ce variantă s-a vândut.
 
-De fiecare dată când Stripe confirmă o plată (`checkout.session.completed`), endpoint-ul
-`/api/stripe/webhook` verifică semnătura, extrage mărime/culoare/cantitate din comandă
-și trimite un email prin Resend către `PROVIDER_EMAIL`.
+## Configurare emailuri (webhook + Resend)
 
-1. **Stripe:** Developers → API keys → copiază cheia secretă în `STRIPE_SECRET_KEY`.
+La fiecare `checkout.session.completed`, endpoint-ul `/api/stripe/webhook` verifică
+semnătura, extrage varianta și cantitatea, și trimite **două emailuri**: specificațiile
+de fabricație către `PROVIDER_EMAIL` și confirmarea comenzii către client. Sunt trimise
+individual (nu prin `resend.batch`, care nu suportă atașamente) cu `Promise.allSettled`,
+deci eșecul unuia nu îl blochează pe celălalt.
+
+1. **Stripe:** Developers → API keys → cheia secretă în `STRIPE_SECRET_KEY`.
 2. **Stripe webhook:** Developers → Webhooks → Add endpoint → URL =
    `https://tricouamenda.ro/api/stripe/webhook`, eveniment = `checkout.session.completed`.
-   Copiază "Signing secret" în `STRIPE_WEBHOOK_SECRET`.
-3. **Resend:** cont gratuit pe resend.com (fără card, 3000 emailuri/lună), verifică
-   domeniul `tricouamenda.ro` (adaugă recordurile DNS pe care ți le dă Resend), creează
-   un API key → `RESEND_API_KEY`. Setează `RESEND_FROM_EMAIL` pe o adresă de pe acel
-   domeniu (ex: `comenzi@tricouamenda.ro`).
-4. **`PROVIDER_EMAIL`** → adresa reală a furnizorului care primește comenzile.
+   Signing secret → `STRIPE_WEBHOOK_SECRET`.
+3. **Resend:** cont gratuit pe resend.com, verifică domeniul `tricouamenda.ro` (adaugă
+   recordurile DNS **în Vercel**, nu la registrar — vezi mai jos), creează un API key →
+   `RESEND_API_KEY`. `RESEND_FROM_EMAIL` = adresă de pe domeniul verificat.
+4. **`PROVIDER_EMAIL`** → adresa reală a producătorului.
 
-Testare locală fără credite reale: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+Testare locală: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
 (Stripe CLI) sau `stripe trigger checkout.session.completed`.
+
+## Facturare (SmartBill, fără cod)
+
+Facturile fiscale nu sunt generate de aplicație — SmartBill se conectează direct la
+Stripe, vede fiecare plată și emite factura cu serie/număr legal, plus trimiterea în SPV
+(obligatoriu în România). Aplicația doar pregătește Stripe pentru asta: preț
+`tax_behavior: inclusive`, billing address obligatorie, și metadata `cod_produs` pe
+produs pentru potrivirea cu nomenclatorul SmartBill.
+
+Emailul de confirmare către client menționează explicit că factura vine separat, de la
+SmartBill, ca să nu creeze așteptarea că e atașată.
 
 ## Configurare domeniu (`tricouamenda.ro`)
 
