@@ -32,12 +32,9 @@ export function SiteFooter() {
             <Field label="CUI" value={SELLER.cui} />
             <Field label="Reg. Com." value={SELLER.regCom} />
             <Field label="Sediu" value={SELLER.address} />
-            <p className="mt-1 flex flex-wrap gap-x-3">
+            <p className="mt-1">
               <a className="underline underline-offset-2" href={`mailto:${SELLER.email}`}>
                 {SELLER.email}
-              </a>
-              <a className="underline underline-offset-2" href={`tel:${SELLER.phone.replace(/\s/g, "")}`}>
-                {SELLER.phone}
               </a>
             </p>
           </section>

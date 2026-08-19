@@ -5,13 +5,16 @@
  */
 
 export const SELLER = {
-  /** DE COMPLETAT — denumirea exactă din certificatul de înregistrare. */
-  name: "DE COMPLETAT SRL",
-  cui: "DE COMPLETAT",
-  regCom: "DE COMPLETAT",
-  address: "DE COMPLETAT",
-  email: "DE COMPLETAT",
-  phone: "DE COMPLETAT",
+  name: "Din Viitor S.R.L.",
+  cui: "RO37925510",
+  regCom: "J40/11712/2017",
+  address: "Str. Giovanni Boccaccio 85, Anexa 1, Sector 4, București, România",
+  /**
+   * Adresă de pe domeniul propriu, cu redirect către inboxul real — ca să nu
+   * publicăm o adresă personală. Trebuie să funcționeze înainte de lansare:
+   * fără redirectul configurat, clienții scriu în gol.
+   */
+  email: "contact@tricouamenda.ro",
 };
 
 export const MANUFACTURER = {
