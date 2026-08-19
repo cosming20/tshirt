@@ -95,6 +95,13 @@ export function ProductExperience({ images }: { images: string[] }) {
             <p className="mt-[clamp(0.3rem,0.8vh,0.75rem)] line-clamp-3 text-[clamp(0.7rem,1.3vw,0.875rem)] leading-relaxed text-ink/75">
               {PRODUCT.description}
             </p>
+            {/* Hero-ul umple tot ecranul, deci fără indiciul ăsta nimeni n-ar afla că povestea urmează. */}
+            <a
+              href="#poveste"
+              className="mt-[clamp(0.35rem,0.9vh,0.75rem)] inline-block font-mono text-[clamp(0.55rem,1.1vw,0.7rem)] uppercase tracking-[0.14em] text-ink/50 underline underline-offset-4 transition-colors hover:text-ink"
+            >
+              Citește povestea ↓
+            </a>
           </div>
 
           <ul className="hidden gap-1 text-[clamp(0.6rem,1.1vw,0.75rem)] font-semibold uppercase tracking-wide [@media(min-height:600px)]:flex [@media(min-height:600px)]:flex-col">

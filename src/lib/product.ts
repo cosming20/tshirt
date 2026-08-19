@@ -82,10 +82,25 @@ export const PRODUCT = {
   },
 };
 
-export type DetailPanel = "story" | "care" | "details" | "shipping" | "sizeGuide";
+/**
+ * Povestea produsului, afișată ca secțiune proprie sub hero — nu în coloana de
+ * cumpărare, care e într-un layout de înălțime fixă unde patru paragrafe ar
+ * împinge prețul și butonul în afara ecranului.
+ */
+export const STORY = {
+  eyebrow: "POVESTEA",
+  lead: "Nu toate versurile rămân doar pe scenă. Unele vin și cu proces-verbal.",
+  paragraphs: [
+    "AMENDAT PENTRU ARTĂ transformă amenda primită pe scenă într-o piesă de merch care vorbește singură. Un tricou pentru cei care înțeleg că uneori cea mai bună reclamă vine direct de la autorități.",
+    "Inspirat din incidentul devenit deja parte din poveste, designul pune amenda în centrul atenției — ca dovadă, trofeu și punchline în același timp.",
+    "Poartă-l la concert, pe stradă sau oriunde simți că ai prea multă libertate de exprimare pentru un singur outfit.",
+  ],
+  closer: "Limited drop. Amenda e reală. Tricoul e și mai real.",
+};
+
+export type DetailPanel = "care" | "details" | "shipping" | "sizeGuide";
 
 export type PanelContent =
-  | { kind: "prose"; paragraphs: string[] }
   | { kind: "list"; items: string[] }
   | { kind: "table"; columns: string[]; rows: string[][]; note?: string };
 
@@ -93,19 +108,6 @@ export type Panel = { id: DetailPanel; label: string; content: PanelContent };
 
 /** Panourile afișate ca linkuri sub descriere. Ghidul de mărimi are propriul link, lângă selectorul de mărime. */
 export const DETAIL_PANELS: Panel[] = [
-  {
-    id: "story",
-    label: "POVESTEA",
-    content: {
-      kind: "prose",
-      paragraphs: [
-        "AMENDAT PENTRU ARTĂ transformă amenda primită pe scenă într-o piesă de merch care vorbește singură. Un tricou pentru cei care înțeleg că uneori cea mai bună reclamă vine direct de la autorități.",
-        "Inspirat din incidentul devenit deja parte din poveste, designul pune amenda în centrul atenției — ca dovadă, trofeu și punchline în același timp.",
-        "Poartă-l la concert, pe stradă sau oriunde simți că ai prea multă libertate de exprimare pentru un singur outfit.",
-        "Limited drop. Amenda e reală. Tricoul e și mai real.",
-      ],
-    },
-  },
   {
     id: "care",
     label: "ÎNGRIJIRE",

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ProductExperience } from "@/components/ProductExperience";
+import { ProductStory } from "@/components/ProductStory";
 import { SiteFooter } from "@/components/SiteFooter";
 import { COLORS, PRODUCT, SIZES, STRIPE_LINKS, getStockStatus } from "@/lib/product";
 import { SITE_URL } from "@/lib/site";
@@ -76,6 +77,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getProductJsonLd(images)) }}
       />
       <ProductExperience images={images} />
+      <ProductStory />
       <SiteFooter />
     </>
   );

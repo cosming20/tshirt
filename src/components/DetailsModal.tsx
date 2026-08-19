@@ -82,15 +82,7 @@ export function DetailsModal({
           key={active}
           className="flex h-full flex-col justify-center overflow-y-auto p-6 text-sm leading-relaxed animate-[fade-in_0.18s_ease-out]"
         >
-          {content.kind === "prose" ? (
-            <div className="space-y-3">
-              {content.paragraphs.map((paragraph, i) => (
-                <p key={i} className={i === content.paragraphs.length - 1 ? "font-semibold" : ""}>
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          ) : content.kind === "list" ? (
+          {content.kind === "list" ? (
             <ul className="space-y-3">
               {content.items.map((line, i) => (
                 <li key={i}>{line}</li>
