@@ -6,6 +6,7 @@ import {
   COLORS,
   DETAIL_PANELS,
   PRODUCT,
+  STORY,
   SIZES,
   STRIPE_LINKS,
   getStockStatus,
@@ -84,24 +85,33 @@ export function ProductExperience({ images }: { images: string[] }) {
           )}
         </div>
 
+        {/* Derulare internă: povestea completă stă aici, iar pe ecrane scunde nu trebuie să
+            împingă prețul și butonul în afara viewportului. */}
         <div
-          className="flex w-full flex-shrink-0 flex-col justify-center gap-[clamp(0.45rem,1.6vh,1.25rem)] animate-rise-in landscape:h-full landscape:max-w-md landscape:flex-1"
+          className="flex w-full min-h-0 flex-shrink-0 flex-col justify-center gap-[clamp(0.45rem,1.6vh,1.25rem)] overflow-y-auto animate-rise-in landscape:h-full landscape:max-w-md landscape:flex-1"
           style={{ animationDelay: "0.1s" }}
         >
-          <div>
+          <div className="flex flex-col gap-[clamp(0.35rem,0.9vh,0.75rem)]">
             <p className="font-mono text-[clamp(0.55rem,1.1vw,0.7rem)] uppercase tracking-[0.2em] text-accent">
               {PRODUCT.eyebrow}
             </p>
-            <p className="mt-[clamp(0.3rem,0.8vh,0.75rem)] line-clamp-3 text-[clamp(0.7rem,1.3vw,0.875rem)] leading-relaxed text-ink/75">
-              {PRODUCT.description}
+
+            <p className="text-[clamp(0.75rem,1.35vw,0.9375rem)] font-medium leading-snug text-ink">
+              {STORY.lead}
             </p>
-            {/* Hero-ul umple tot ecranul, deci fără indiciul ăsta nimeni n-ar afla că povestea urmează. */}
-            <a
-              href="#poveste"
-              className="mt-[clamp(0.35rem,0.9vh,0.75rem)] inline-block font-mono text-[clamp(0.55rem,1.1vw,0.7rem)] uppercase tracking-[0.14em] text-ink/50 underline underline-offset-4 transition-colors hover:text-ink"
-            >
-              Citește povestea ↓
-            </a>
+
+            {STORY.paragraphs.map((paragraph, i) => (
+              <p
+                key={i}
+                className="text-[clamp(0.7rem,1.25vw,0.8125rem)] leading-relaxed text-ink/70"
+              >
+                {paragraph}
+              </p>
+            ))}
+
+            <p className="font-mono text-[clamp(0.55rem,1.05vw,0.6875rem)] uppercase leading-relaxed tracking-[0.1em] text-ink">
+              {STORY.closer}
+            </p>
           </div>
 
           <ul className="hidden gap-1 text-[clamp(0.6rem,1.1vw,0.75rem)] font-semibold uppercase tracking-wide [@media(min-height:600px)]:flex [@media(min-height:600px)]:flex-col">

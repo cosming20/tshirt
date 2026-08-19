@@ -71,9 +71,6 @@ export const PRODUCT = {
   /** Preț numeric + valută ISO, folosite în datele structurate pentru SEO (nu afișate direct). */
   priceAmount: 150,
   currency: "RON",
-  /** Cârligul, afișat lângă produs. Restul poveștii stă în panoul POVESTEA — slotul din pagină taie după 3 rânduri. */
-  description:
-    "Nu toate versurile rămân doar pe scenă. Unele vin și cu proces-verbal.",
   /** O propoziție scurtă pentru <meta description> și pentru cardurile de share. */
   seoDescription:
     "Tricou în ediție limitată care transformă o amendă primită pe scenă într-o piesă de merch. Nu toate versurile rămân doar pe scenă — unele vin și cu proces-verbal.",
@@ -82,13 +79,8 @@ export const PRODUCT = {
   },
 };
 
-/**
- * Povestea produsului, afișată ca secțiune proprie sub hero — nu în coloana de
- * cumpărare, care e într-un layout de înălțime fixă unde patru paragrafe ar
- * împinge prețul și butonul în afara ecranului.
- */
+/** Povestea produsului, afișată integral în coloana de cumpărare, sub eyebrow. */
 export const STORY = {
-  eyebrow: "POVESTEA",
   lead: "Nu toate versurile rămân doar pe scenă. Unele vin și cu proces-verbal.",
   paragraphs: [
     "AMENDAT PENTRU ARTĂ transformă amenda primită pe scenă într-o piesă de merch care vorbește singură. Un tricou pentru cei care înțeleg că uneori cea mai bună reclamă vine direct de la autorități.",
