@@ -101,24 +101,29 @@ function tableHead(): string {
 // --- Email 1: către producător, cu specificațiile de fabricație ---
 
 export function buildProviderSubject(order: Order): string {
-  return `Comandă nouă de producție — #${shortId(order.orderId)}`;
+  return `Comandă nouă de producție și expediere — #${shortId(order.orderId)}`;
 }
 
 export function buildProviderHtml(order: Order): string {
   return `
     <div style="font-family:sans-serif;font-size:14px;color:#111;line-height:1.5;">
-      <h2 style="margin:0 0 4px;">Comandă nouă de producție</h2>
-      <p style="margin:0 0 20px;color:#666;">Comanda #${shortId(order.orderId)} · total încasat ${formatTotal(order)}</p>
+      <h2 style="margin:0 0 4px;">Comandă nouă</h2>
+      <p style="margin:0 0 20px;color:#666;">Comanda #${shortId(order.orderId)} · plata încasată ${formatTotal(order)}</p>
 
+      <h3 style="margin:0 0 8px;font-size:14px;">De produs</h3>
       <table style="border-collapse:collapse;width:100%;max-width:480px;">
         <thead>${tableHead()}</thead>
         <tbody>${variantRows(order, "#ddd")}</tbody>
       </table>
 
-      <h3 style="margin:24px 0 8px;font-size:14px;">Date de livrare</h3>
+      <h3 style="margin:24px 0 8px;font-size:14px;">De expediat către</h3>
       <p style="margin:0;">${safe(order.customerName)}</p>
-      <p style="margin:0;">${safe(order.customerEmail)}</p>
       <p style="margin:0;">${safe(order.shippingAddress, "adresă necompletată — verifică în Stripe")}</p>
+      <p style="margin:0;color:#666;">${safe(order.customerEmail)}</p>
+
+      <p style="margin:20px 0 0;color:#666;font-size:13px;">
+        Trimite-ne numărul AWB după expediere, ca să îl putem da clientului dacă îl cere.
+      </p>
     </div>`;
 }
 
@@ -135,8 +140,8 @@ export function buildCustomerHtml(order: Order): string {
       <p style="margin:0 0 20px;color:#666;">Comanda #${shortId(order.orderId)} · ${formatTotal(order)}</p>
 
       <p style="margin:0 0 16px;">
-        Am primit plata și am trimis comanda în producție. Primești un mesaj cu numărul
-        de urmărire în momentul în care coletul pleacă spre tine.
+        Am primit plata și am trimis comanda în producție. Tricoul se confecționează și pleacă
+        spre tine direct de la atelier.
       </p>
 
       <table style="border-collapse:collapse;width:100%;max-width:480px;">

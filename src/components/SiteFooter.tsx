@@ -85,16 +85,15 @@ export function SiteFooter() {
               >
                 {hasBadgeImage(badge.image) ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={badge.image}
-                    alt={badge.label}
-                    width={250}
-                    height={50}
-                    className="h-[38px] w-auto"
-                  />
+                  <img src={badge.image} alt={badge.label} width={250} height={50} />
                 ) : (
-                  <span className="px-4 py-2 font-mono text-[11px] uppercase tracking-[0.12em]">
-                    {badge.label}
+                  /* Substitut la dimensiunea cerută (250x50) până când pictograma oficială
+                     ANPC e pusă în public/legal/ — atunci fișierul o înlocuiește automat. */
+                  <span className="flex h-[50px] w-[250px] flex-col justify-center gap-0.5 px-3">
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-[0.12em]">
+                      {badge.label}
+                    </span>
+                    <span className="text-[9px] leading-tight text-ink/60">{badge.caption}</span>
                   </span>
                 )}
               </a>

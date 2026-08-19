@@ -40,12 +40,14 @@ export const ANPC_LINKS = {
   sal: {
     enabled: true,
     label: "ANPC · SAL",
+    caption: "Soluționarea alternativă a litigiilor",
     href: "https://anpc.ro/ce-este-sal/",
     image: "/legal/anpc-sal.png",
   },
   sol: {
     enabled: false,
     label: "ANPC · SOL",
+    caption: "Soluționarea online a litigiilor",
     href: "https://ec.europa.eu/consumers/odr",
     image: "/legal/anpc-sol.png",
   },
