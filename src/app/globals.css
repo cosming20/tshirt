@@ -17,6 +17,12 @@
   --font-mono: var(--font-mono);
 }
 
+html,
+body {
+  min-height: 100%;
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--paper);
   color: var(--ink);
