@@ -43,3 +43,6 @@ next-env.d.ts
 
 # unrelated local tooling
 .claude-flow/
+
+# playwright-mcp scratch output
+.playwright-mcp/
