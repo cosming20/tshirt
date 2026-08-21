@@ -20,10 +20,18 @@ function getStripeClient(): Stripe {
   return new Stripe(secretKey);
 }
 
-async function buildOrder(stripe: Stripe, session: Stripe.Checkout.Session): Promise<Order> {
-  const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
-    expand: ["data.price"],
-  });
+async function buildOrder(stripe: Stripe, sessionId: string): Promise<Order> {
+  /**
+   * Recitim sesiunea din API în loc să folosim obiectul din eveniment. Payload-ul
+   * evenimentului e serializat cu versiunea de API aleasă pe destinație în dashboard;
+   * dacă acolo e o versiune veche, câmpuri ca `collected_information` lipsesc și am
+   * pierde adresa de livrare fără nicio eroare vizibilă. Citirea directă vine mereu
+   * în versiunea pe care o așteaptă SDK-ul.
+   */
+  const [session, lineItems] = await Promise.all([
+    stripe.checkout.sessions.retrieve(sessionId),
+    stripe.checkout.sessions.listLineItems(sessionId, { expand: ["data.price"] }),
+  ]);
 
   const lines: OrderLine[] = lineItems.data.map((item) => ({
     variant: resolveVariantFromPriceId(item.price?.id),
@@ -151,7 +159,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const order = await buildOrder(stripe, session);
+    const order = await buildOrder(stripe, session.id);
     await sendOrderEmails(order);
   } catch (err) {
     const message = err instanceof Error ? err.message : "eroare necunoscută";
