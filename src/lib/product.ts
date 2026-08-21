@@ -11,36 +11,6 @@ export const COLORS: { id: Color; label: string; swatch: string }[] = [
 ];
 
 /**
- * Fiecare combinație mărime+culoare e o variantă distinctă în Stripe: un singur
- * produs cu 10 prețuri, fiecare cu propriul Payment Link. Culoarea e deja
- * fixată de link, deci clientul o alege o singură dată — pe site — și nu mai
- * poate apărea o nepotrivire între ce a ales și ce se produce.
- * Completează linkurile în .env.local (vezi .env.local.example).
- */
-export const STRIPE_LINKS: Record<Size, Record<Color, string | undefined>> = {
-  S: {
-    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_S_NEGRU,
-    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_S_ALB,
-  },
-  M: {
-    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_M_NEGRU,
-    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_M_ALB,
-  },
-  L: {
-    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_L_NEGRU,
-    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_L_ALB,
-  },
-  XL: {
-    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_XL_NEGRU,
-    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_XL_ALB,
-  },
-  XXL: {
-    negru: process.env.NEXT_PUBLIC_STRIPE_LINK_XXL_NEGRU,
-    alb: process.env.NEXT_PUBLIC_STRIPE_LINK_XXL_ALB,
-  },
-};
-
-/**
  * Stoc actualizat manual de tine după fiecare comandă/reaprovizionare — nu
  * există bază de date, deci numerele astea nu scad automat la o vânzare.
  * Pragul sub care arătăm "mai sunt puține" pe pagină.

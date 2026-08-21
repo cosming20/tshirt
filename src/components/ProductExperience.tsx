@@ -8,32 +8,72 @@ import {
   PRODUCT,
   STORY,
   SIZES,
-  STRIPE_LINKS,
   getStockStatus,
   type Color,
   type DetailPanel,
   type Size,
 } from "@/lib/product";
+import { MAX_QUANTITY_PER_ITEM, cartCount, cartItemKey, type CartItem } from "@/lib/cart";
 import { DetailsModal } from "@/components/DetailsModal";
+import { CartModal } from "@/components/CartModal";
 
 export function ProductExperience({ images }: { images: string[] }) {
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState<Size>("M");
   const [color, setColor] = useState<Color>(COLORS[0].id);
   const [openPanel, setOpenPanel] = useState<DetailPanel | null>(null);
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setCartOpen] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
 
-  const checkoutHref = STRIPE_LINKS[size][color];
   const stock = getStockStatus(size, color);
-  const canBuy = Boolean(checkoutHref) && !stock.isOutOfStock;
+  const canBuy = !stock.isOutOfStock;
   const colorLabel = COLORS.find((c) => c.id === color)?.label ?? color;
+  const count = cartCount(items);
+
+  const addToCart = () => {
+    const key = cartItemKey({ size, color });
+    setItems((current) => {
+      const existing = current.find((item) => cartItemKey(item) === key);
+      if (!existing) return [...current, { size, color, quantity: 1 }];
+      // Aceeași variantă adăugată din nou crește cantitatea, până la plafonul acceptat de server.
+      return current.map((item) =>
+        cartItemKey(item) === key
+          ? { ...item, quantity: Math.min(item.quantity + 1, MAX_QUANTITY_PER_ITEM) }
+          : item,
+      );
+    });
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1400);
+  };
+
+  const changeQuantity = (target: CartItem, quantity: number) =>
+    setItems((current) =>
+      current.map((item) =>
+        cartItemKey(item) === cartItemKey(target) ? { ...item, quantity } : item,
+      ),
+    );
+
+  const removeItem = (target: CartItem) =>
+    setItems((current) =>
+      current.filter((item) => cartItemKey(item) !== cartItemKey(target)),
+    );
 
   return (
     <main className="flex h-dvh w-full flex-col overflow-hidden bg-paper">
-      <header className="flex-shrink-0 px-[clamp(1rem,4vw,2.5rem)] py-[clamp(0.55rem,1.6vh,1.1rem)]">
+      <header className="flex flex-shrink-0 items-center justify-between px-[clamp(1rem,4vw,2.5rem)] py-[clamp(0.55rem,1.6vh,1.1rem)]">
         <span className="font-display text-[clamp(0.75rem,1.6vw,0.95rem)] lowercase tracking-tight">
           {PRODUCT.nav.brand.replace(/\.\w+$/, "")}
           <span className="text-accent">{PRODUCT.nav.brand.match(/\.\w+$/)?.[0]}</span>
         </span>
+
+        <button
+          type="button"
+          onClick={() => setCartOpen(true)}
+          className="font-mono text-[clamp(0.55rem,1.1vw,0.7rem)] uppercase tracking-[0.14em] text-ink/60 transition-colors hover:text-ink"
+        >
+          Coș ({count})
+        </button>
       </header>
 
       <section className="flex min-h-0 flex-1 flex-col gap-[clamp(0.6rem,1.8vh,1.5rem)] overflow-hidden px-[clamp(1rem,4vw,2.5rem)] pb-[clamp(0.6rem,1.8vh,1.5rem)] landscape:flex-row landscape:items-stretch landscape:gap-[clamp(1rem,3vw,4rem)]">
@@ -180,11 +220,7 @@ export function ProductExperience({ images }: { images: string[] }) {
                 </button>
               ))}
             </div>
-            {!checkoutHref ? (
-              <p className="mt-2 line-clamp-1 text-[clamp(0.6rem,1.1vw,0.75rem)] text-ink/50">
-                {size} / {colorLabel} nu are încă un link de plată configurat.
-              </p>
-            ) : stock.isOutOfStock ? (
+            {stock.isOutOfStock ? (
               <p className="mt-2 line-clamp-1 text-[clamp(0.6rem,1.1vw,0.75rem)] text-ink/50">
                 {size} / {colorLabel} — stoc epuizat.
               </p>
@@ -198,28 +234,43 @@ export function ProductExperience({ images }: { images: string[] }) {
           <div className="flex items-end justify-between border-t border-ink/15 pt-[clamp(0.6rem,1.6vh,1.25rem)]">
             <p className="font-display text-[clamp(1.25rem,3vw,1.875rem)]">{PRODUCT.price}</p>
 
-            <a
-              href={canBuy ? checkoutHref : "#"}
-              target={canBuy ? "_blank" : undefined}
-              rel={canBuy ? "noopener noreferrer" : undefined}
-              aria-disabled={!canBuy}
+            <button
+              type="button"
+              onClick={addToCart}
+              disabled={!canBuy}
               className={`hard-shadow inline-flex items-center justify-center bg-accent px-[clamp(1.25rem,3vw,2rem)] py-[clamp(0.55rem,1.5vh,0.875rem)] font-display text-[clamp(0.7rem,1.3vw,0.875rem)] uppercase tracking-wide text-accent-ink transition-all duration-150 ${
                 canBuy
                   ? "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[6px] active:translate-y-[6px]"
                   : "cursor-not-allowed opacity-50"
               }`}
-              onClick={(e) => {
-                if (!canBuy) e.preventDefault();
-              }}
             >
-              {stock.isOutOfStock ? "Stoc epuizat" : "Cumpără acum"}
-            </a>
+              {stock.isOutOfStock ? "Stoc epuizat" : justAdded ? "Adăugat ✓" : "Adaugă în coș"}
+            </button>
           </div>
+
+          {count > 0 && (
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              className="w-fit font-mono text-[clamp(0.55rem,1.1vw,0.7rem)] uppercase tracking-[0.14em] text-ink/55 underline underline-offset-4 transition-colors hover:text-ink"
+            >
+              Vezi coșul ({count}) și finalizează →
+            </button>
+          )}
         </div>
       </section>
 
       {openPanel && (
         <DetailsModal initialPanel={openPanel} onClose={() => setOpenPanel(null)} />
+      )}
+
+      {isCartOpen && (
+        <CartModal
+          items={items}
+          onChangeQuantity={changeQuantity}
+          onRemove={removeItem}
+          onClose={() => setCartOpen(false)}
+        />
       )}
     </main>
   );

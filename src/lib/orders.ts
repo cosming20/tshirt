@@ -28,6 +28,15 @@ export function resolveVariantFromPriceId(
   return PRICE_ID_TO_VARIANT[priceId];
 }
 
+/** Preț per variantă, luat din configurația serverului — niciodată din request-ul clientului. */
+export function resolvePriceIdForVariant(variant: Variant): string | undefined {
+  const entry = Object.entries(PRICE_ID_TO_VARIANT).find(
+    ([priceId, mapped]) =>
+      priceId !== "" && mapped?.size === variant.size && mapped?.color === variant.color,
+  );
+  return entry?.[0];
+}
+
 export type OrderLine = {
   variant: Variant | undefined;
   quantity: number;

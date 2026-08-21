@@ -23,21 +23,22 @@ npm run dev
 
 ## Configurare Stripe (checkout)
 
-Structura: **un produs cu 10 prețuri** (5 mărimi × 2 culori), fiecare cu propriul
-Payment Link. Culoarea e fixată de link, deci selecția de pe site determină complet ce
-se cumpără — nu există pas în care clientul ar putea alege altceva decât ce a văzut.
+Structura: **un produs cu 10 prețuri** (5 mărimi × 2 culori). **Fără Payment Links** —
+`/api/checkout` creează sesiunea din coș, ca mai multe mărimi să încapă într-o singură
+plată. Setările care altfel s-ar bifa pe fiecare link (adresă de livrare, adresă de
+facturare, telefon, cantitate ajustabilă) sunt în cod.
 
 1. Creează produsul cu primul preț (150 RON, **tax behavior: inclusive**), apoi adaugă
-   celelalte 9 prețuri din Product → Pricing → Add another price. Dă fiecăruia un
-   nickname de forma `S · negru`.
+   celelalte 9 din Product → Pricing → Add another price. Dă fiecăruia un nickname de
+   forma `S · negru`.
 2. Adaugă pe produs metadata `cod_produs` = codul din nomenclatorul SmartBill.
-3. Creează 10 Payment Links, câte unul per preț. Pe **fiecare** activează:
-   - **Collect shipping address** (altfel nu ai unde livra)
-   - **Billing address: required** (necesar pentru factură)
-   - **Adjustable quantity** min 1 / max 10
-4. Pune cele 10 URL-uri în `NEXT_PUBLIC_STRIPE_LINK_<MĂRIME>_<CULOARE>` și cele 10
-   **Price ID**-uri (`price_…`, nu `prod_…`) în `STRIPE_PRICE_ID_<MĂRIME>_<CULOARE>`.
-   Webhook-ul folosește Price ID-ul ca să știe ce variantă s-a vândut.
+3. Pune cele 10 **Price ID**-uri (`price_…`, nu `prod_…`) în
+   `STRIPE_PRICE_ID_<MĂRIME>_<CULOARE>`.
+
+Prețurile nu circulă niciodată prin browser: clientul trimite doar mărime, culoare și
+cantitate, iar serverul rezolvă Price ID-ul din variabilele de mediu. Payload-ul e
+validat în `src/lib/cart.ts` (variante inexistente, cantități negative/fracționare/peste
+plafon și variante duplicate sunt respinse cu 400).
 
 ## Configurare emailuri (webhook + Resend)
 

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { ProductExperience } from "@/components/ProductExperience";
 import { SiteFooter } from "@/components/SiteFooter";
-import { COLORS, PRODUCT, SIZES, STRIPE_LINKS, getStockStatus } from "@/lib/product";
+import { COLORS, PRODUCT, SIZES, getStockStatus } from "@/lib/product";
 import { SITE_URL } from "@/lib/site";
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
@@ -37,8 +37,7 @@ function getProductJsonLd(images: string[]) {
   // nu un singur "în stoc" care ascunde variantele epuizate.
   const offers = SIZES.flatMap((size) =>
     COLORS.map((color) => {
-      const isSellable =
-        Boolean(STRIPE_LINKS[size][color.id]) && !getStockStatus(size, color.id).isOutOfStock;
+      const isSellable = !getStockStatus(size, color.id).isOutOfStock;
 
       return {
         "@type": "Offer",
