@@ -41,9 +41,13 @@ export const PRODUCT = {
   /** Preț numeric + valută ISO, folosite în datele structurate pentru SEO (nu afișate direct). */
   priceAmount: 150,
   currency: "RON",
-  /** O propoziție scurtă pentru <meta description> și pentru cardurile de share. */
+  /**
+   * O propoziție scurtă pentru <meta description> și pentru cardurile de share.
+   * Ținută sub ~155 caractere ca să nu se taie în rezultatele Google (era 162 înainte,
+   * risca să taie exact „proces-verbal" — vezi docs/seo-research.md).
+   */
   seoDescription:
-    "Tricou în ediție limitată care transformă o amendă primită pe scenă într-o piesă de merch. Nu toate versurile rămân doar pe scenă — unele vin și cu proces-verbal.",
+    "Nu toate versurile rămân doar pe scenă — unele vin și cu proces-verbal. Tricou AMENDAT PENTRU ARTĂ, ediție limitată, 100% bumbac, confecționat în România.",
   nav: {
     brand: "tricouamenda.ro",
   },

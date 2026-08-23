@@ -17,6 +17,17 @@
   --font-mono: var(--font-mono);
 }
 
+/* Preflight-ul din Tailwind v4 a schimbat cursorul implicit al butoanelor din `pointer`
+   în `default`, așa că toate butoanele de aici (mărime, culoare, adaugă în coș) arătau
+   o săgeată. Îl punem la loc: e semnalul standard că un element se poate apăsa — pentru
+   oameni, și pentru agenții care citesc pagina și caută exact indiciul ăsta. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 html,
 body {
   min-height: 100%;

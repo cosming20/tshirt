@@ -105,6 +105,31 @@ A    www.tricouamenda.ro   76.76.21.21
 
 Vercel emite automat certificatul SSL după ce recordurile propagă.
 
+## SEO și descoperire AI
+
+- **Google Search Console**: tag-ul de verificare e în `src/app/layout.tsx`
+  (`metadata.verification.google`). Dacă schimbi proprietatea din GSC, actualizează
+  valoarea de acolo — nu adăuga un al doilea tag.
+- **Titlu / descriere / keywords**: `src/app/layout.tsx` (titlu, keywords) și
+  `PRODUCT.seoDescription` din `src/lib/product.ts` (descriere — folosită și în OG,
+  Twitter card și JSON-LD, ca să nu umble dezechilibrat). Rațională și alternative în
+  `docs/seo-research.md`.
+- **robots.txt** (`src/app/robots.ts`): reguli separate pe categorii de boți — motoarele
+  de căutare și boții de „answer engine" (ChatGPT, Perplexity, Copilot, Claude) sunt
+  permiși explicit; crawlerele de antrenare ale companiilor care operează și un answer
+  engine (GPTBot, ClaudeBot, Google-Extended, Applebot-Extended) sunt permise deliberat;
+  scraperele pure, fără nicio suprafață de citare (CCBot, Bytespider etc.), sunt blocate.
+  Detaliile și motivul fiecărei decizii sunt comentate direct în fișier.
+- **llms.txt** (`/llms.txt`, cod în `src/app/llms.txt/route.ts`): rezumat al site-ului
+  pentru agenți AI, generat din aceleași surse ca pagina (`product.ts`, `legal.ts`) — nu
+  se editează separat, altfel poate ajunge să spună altceva decât pagina.
+- **Date structurate** (`src/app/page.tsx`): un singur `@graph` JSON-LD cu `Organization`
+  (vânzătorul real, din `legal.ts`), `WebSite`, `WebPage` și `Product` (ofertă separată pe
+  fiecare mărime/culoare, cu disponibilitatea reală din `STOCK`).
+- **Favicon**: `src/app/favicon.ico` (fallback static, pentru browsere vechi) plus
+  `icon.tsx` / `apple-icon.tsx` (generate dinamic cu `next/og`, ca `opengraph-image.tsx`)
+  — marca „!" în culoarea de accent (`#5a31f4`) pe fond ink (`#0d0c11`).
+
 ## Deploy pe Vercel
 
 1. `vercel link` (deja făcut — proiectul e `guta_tricou`, conectat la

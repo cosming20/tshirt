@@ -1,27 +1,27 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   COLORS,
   DETAIL_PANELS,
   PRODUCT,
+  SIZE_GUIDE_PANEL,
   STORY,
   SIZES,
   getStockStatus,
   type Color,
-  type DetailPanel,
   type Size,
 } from "@/lib/product";
 import { MAX_QUANTITY_PER_ITEM, cartCount, cartItemKey, type CartItem } from "@/lib/cart";
-import { DetailsModal } from "@/components/DetailsModal";
+import { PanelDisclosure } from "@/components/PanelDisclosure";
 import { CartModal } from "@/components/CartModal";
 
 export function ProductExperience({ images }: { images: string[] }) {
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState<Size>("M");
   const [color, setColor] = useState<Color>(COLORS[0].id);
-  const [openPanel, setOpenPanel] = useState<DetailPanel | null>(null);
+  const sizeGuideRef = useRef<HTMLDetailsElement>(null);
   const [items, setItems] = useState<CartItem[]>([]);
   const [isCartOpen, setCartOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
@@ -58,6 +58,15 @@ export function ProductExperience({ images }: { images: string[] }) {
     setItems((current) =>
       current.filter((item) => cartItemKey(item) !== cartItemKey(target)),
     );
+
+  // Ghidul de mărimi trăiește ca <details> propriu, lângă selectorul de mărime (vezi mai
+  // jos) — linkul doar îl deschide și îl aduce în vizor, nu (mai) declanșează un modal.
+  const openSizeGuide = () => {
+    const el = sizeGuideRef.current;
+    if (!el) return;
+    el.open = true;
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
 
   return (
     <main className="flex h-dvh w-full flex-col overflow-hidden bg-paper">
@@ -154,16 +163,10 @@ export function ProductExperience({ images }: { images: string[] }) {
             </p>
           </div>
 
-          <ul className="hidden gap-1 text-[clamp(0.6rem,1.1vw,0.75rem)] font-semibold uppercase tracking-wide [@media(min-height:600px)]:flex [@media(min-height:600px)]:flex-col">
+          <ul className="hidden gap-1.5 text-[clamp(0.6rem,1.1vw,0.75rem)] font-semibold uppercase tracking-wide [@media(min-height:600px)]:flex [@media(min-height:600px)]:flex-col">
             {DETAIL_PANELS.map((panel) => (
               <li key={panel.id}>
-                <button
-                  type="button"
-                  onClick={() => setOpenPanel(panel.id)}
-                  className="text-ink/70 transition-all duration-150 hover:translate-x-1 hover:text-ink active:scale-95"
-                >
-                  [+] {panel.label}
-                </button>
+                <PanelDisclosure panel={panel} />
               </li>
             ))}
           </ul>
@@ -197,7 +200,7 @@ export function ProductExperience({ images }: { images: string[] }) {
               </p>
               <button
                 type="button"
-                onClick={() => setOpenPanel("sizeGuide")}
+                onClick={openSizeGuide}
                 className="font-mono text-[clamp(0.55rem,1.1vw,0.7rem)] uppercase tracking-[0.1em] text-ink/50 underline underline-offset-2 transition-colors hover:text-ink"
               >
                 Ghid mărimi
@@ -229,10 +232,21 @@ export function ProductExperience({ images }: { images: string[] }) {
                 Au mai rămas {stock.remaining} bucăți.
               </p>
             ) : null}
+
+            <div className="mt-2 text-[clamp(0.6rem,1.1vw,0.75rem)] font-semibold uppercase tracking-wide">
+              <PanelDisclosure panel={SIZE_GUIDE_PANEL} detailsRef={sizeGuideRef} />
+            </div>
           </div>
 
           <div className="flex items-end justify-between border-t border-ink/15 pt-[clamp(0.6rem,1.6vh,1.25rem)]">
-            <p className="font-display text-[clamp(1.25rem,3vw,1.875rem)]">{PRODUCT.price}</p>
+            <div>
+              {/* Fără eticheta asta, un extractor de conținut vede un număr gol lângă un
+                  buton — nimic care să-i spună că e prețul. */}
+              <p className="font-mono text-[clamp(0.55rem,1.1vw,0.7rem)] uppercase tracking-[0.15em] text-ink/50">
+                Preț
+              </p>
+              <p className="font-display text-[clamp(1.25rem,3vw,1.875rem)]">{PRODUCT.price}</p>
+            </div>
 
             <button
               type="button"
@@ -259,10 +273,6 @@ export function ProductExperience({ images }: { images: string[] }) {
           )}
         </div>
       </section>
-
-      {openPanel && (
-        <DetailsModal initialPanel={openPanel} onClose={() => setOpenPanel(null)} />
-      )}
 
       {isCartOpen && (
         <CartModal
