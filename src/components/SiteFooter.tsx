@@ -5,7 +5,8 @@ import { PRODUCT } from "@/lib/product";
 
 /** Pictogramele oficiale ANPC sunt opționale pe disc — dacă lipsesc, afișăm un link text în loc de o imagine ruptă. */
 function hasBadgeImage(publicPath: string): boolean {
-  return fs.existsSync(path.join(process.cwd(), "public", publicPath));
+  const relative = publicPath.replace(/^\//, "");
+  return fs.existsSync(path.join(process.cwd(), "public", relative));
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -78,11 +79,17 @@ export function SiteFooter() {
                 href={badge.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center border border-ink/20 transition-colors hover:border-ink"
+                className="inline-flex h-[50px] w-[250px] items-center justify-center"
               >
                 {hasBadgeImage(badge.image) ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={badge.image} alt={badge.label} width={250} height={50} />
+                  <img
+                    src={badge.image}
+                    alt={badge.label}
+                    width={250}
+                    height={62}
+                    className="h-[50px] w-[250px] object-contain"
+                  />
                 ) : (
                   /* Substitut la dimensiunea cerută (250x50) până când pictograma oficială
                      ANPC e pusă în public/legal/ — atunci fișierul o înlocuiește automat. */

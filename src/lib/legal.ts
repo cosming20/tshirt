@@ -42,7 +42,7 @@ export const ANPC_LINKS = {
     enabled: true,
     label: "ANPC · SAL",
     caption: "Soluționarea alternativă a litigiilor",
-    href: "https://anpc.ro/ce-este-sal/",
+    href: "https://reclamatiisal.anpc.ro/",
     image: "/legal/anpc-sal.png",
   },
   sol: {
