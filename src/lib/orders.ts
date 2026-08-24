@@ -46,6 +46,7 @@ export type Order = {
   orderId: string;
   customerName: string | null;
   customerEmail: string | null;
+  customerPhone: string | null;
   shippingAddress: string | null;
   lines: OrderLine[];
   totalAmount: number | null;
@@ -127,6 +128,7 @@ export function buildProviderHtml(order: Order): string {
 
       <h3 style="margin:24px 0 8px;font-size:14px;">De expediat către</h3>
       <p style="margin:0;">${safe(order.customerName)}</p>
+      <p style="margin:0;">${safe(order.customerPhone)}</p>
       <p style="margin:0;">${safe(order.shippingAddress, "adresă necompletată — verifică în Stripe")}</p>
       <p style="margin:0;color:#666;">${safe(order.customerEmail)}</p>
 

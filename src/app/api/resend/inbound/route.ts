@@ -1,10 +1,11 @@
 import { Resend } from "resend";
 import { SELLER } from "@/lib/legal";
+import { readShopInboxes, type ShopInboxes } from "@/lib/mail";
 
 /**
  * Primește emailurile trimise pe domeniu (ex: contact@tricouamenda.ro) și le
- * redirectează către inboxul real. Resend livrează evenimentul `email.received`
- * aici; noi verificăm semnătura și cerem redirectarea mesajului original.
+ * redirectează către magazin și atelier. Resend livrează evenimentul
+ * `email.received` aici; noi verificăm semnătura și cerem redirectarea mesajului original.
  */
 const HANDLED_EVENT = "email.received";
 
@@ -14,12 +15,20 @@ const FORWARD_FROM = SELLER.email;
 export async function POST(request: Request): Promise<Response> {
   const apiKey = process.env.RESEND_API_KEY;
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
-  const forwardTo = process.env.CONTACT_FORWARD_TO;
 
-  if (!apiKey || !webhookSecret || !forwardTo) {
+  if (!apiKey || !webhookSecret) {
     console.error(
-      "[resend-inbound] configurație incompletă: RESEND_API_KEY, RESEND_WEBHOOK_SECRET sau CONTACT_FORWARD_TO lipsesc.",
+      "[resend-inbound] configurație incompletă: RESEND_API_KEY sau RESEND_WEBHOOK_SECRET lipsesc.",
     );
+    return Response.json({ error: "Redirect neconfigurat." }, { status: 500 });
+  }
+
+  let inboxes: ShopInboxes;
+  try {
+    inboxes = readShopInboxes();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "inbox-uri neconfigurate";
+    console.error(`[resend-inbound] ${message}`);
     return Response.json({ error: "Redirect neconfigurat." }, { status: 500 });
   }
 
@@ -55,7 +64,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const { error } = await resend.emails.receiving.forward({
       emailId: event.data.email_id,
-      to: forwardTo,
+      to: inboxes.recipients,
       from: FORWARD_FROM,
       // Trimite mesajul original neatins, cu tot cu atașamente.
       passthrough: true,

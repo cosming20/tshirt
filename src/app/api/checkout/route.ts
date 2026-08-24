@@ -1,6 +1,8 @@
 import Stripe from "stripe";
-import { MAX_QUANTITY_PER_ITEM, parseCartPayload } from "@/lib/cart";
+import { MAX_QUANTITY_PER_ITEM } from "@/lib/cart";
+import { parseCheckoutRequest } from "@/lib/checkout";
 import { resolvePriceIdForVariant } from "@/lib/orders";
+import { shippingToMetadata } from "@/lib/shipping";
 import { SITE_URL } from "@/lib/site";
 
 /**
@@ -10,7 +12,6 @@ import { SITE_URL } from "@/lib/site";
  * rezolvă pe server după mărime+culoare — clientul nu poate influența suma.
  */
 export async function POST(request: Request): Promise<Response> {
-  // Validarea cererii vine prima: un coș malformat e 400 indiferent de cum e configurat serverul.
   let payload: unknown;
   try {
     payload = await request.json();
@@ -18,9 +19,9 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Coș invalid." }, { status: 400 });
   }
 
-  const items = parseCartPayload(payload);
-  if (!items) {
-    return Response.json({ error: "Coș invalid." }, { status: 400 });
+  const checkout = parseCheckoutRequest(payload);
+  if (!checkout) {
+    return Response.json({ error: "Completează adresa de livrare." }, { status: 400 });
   }
 
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -30,7 +31,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
-  for (const item of items) {
+  for (const item of checkout.items) {
     const price = resolvePriceIdForVariant({ size: item.size, color: item.color });
     if (!price) {
       console.error(`[checkout] lipsește Price ID pentru ${item.size}/${item.color}.`);
@@ -46,16 +47,30 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
+  const { shipping } = checkout;
+
   try {
     const stripe = new Stripe(secretKey);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: lineItems,
-      // Adresa de livrare ajunge la atelier; cea de facturare e necesară pentru factura SmartBill.
-      shipping_address_collection: { allowed_countries: ["RO"] },
       billing_address_collection: "required",
-      phone_number_collection: { enabled: true },
       locale: "ro",
+      metadata: shippingToMetadata(shipping),
+      payment_intent_data: {
+        shipping: {
+          name: shipping.fullName,
+          phone: shipping.phone,
+          address: {
+            line1: shipping.line1,
+            line2: shipping.line2 ?? undefined,
+            city: shipping.city,
+            state: shipping.county,
+            postal_code: shipping.postalCode,
+            country: "RO",
+          },
+        },
+      },
       success_url: `${SITE_URL}/comanda-confirmata`,
       cancel_url: SITE_URL,
     });

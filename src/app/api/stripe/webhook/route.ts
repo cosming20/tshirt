@@ -1,15 +1,11 @@
-import { Resend } from "resend";
 import Stripe from "stripe";
-import { SELLER } from "@/lib/legal";
+import { sendOrderEmails } from "@/lib/notify";
 import {
-  buildCustomerHtml,
-  buildCustomerSubject,
-  buildProviderHtml,
-  buildProviderSubject,
   resolveVariantFromPriceId,
   type Order,
   type OrderLine,
 } from "@/lib/orders";
+import { formatShippingAddress, shippingFromMetadata } from "@/lib/shipping";
 
 /** Evenimentul Stripe pe care îl tratăm — orice altceva primește 200 și e ignorat, ca Stripe să nu reîncerce livrarea. */
 const HANDLED_EVENT = "checkout.session.completed";
@@ -38,95 +34,25 @@ async function buildOrder(stripe: Stripe, sessionId: string): Promise<Order> {
     quantity: item.quantity ?? 1,
   }));
 
-  const address = session.collected_information?.shipping_details?.address;
+  const fromForm = shippingFromMetadata(session.metadata);
+  const collected = session.collected_information?.shipping_details?.address;
 
   return {
     orderId: session.id,
-    customerName: session.customer_details?.name ?? null,
+    customerName: fromForm?.fullName ?? session.customer_details?.name ?? null,
     customerEmail: session.customer_details?.email ?? null,
-    shippingAddress: address
-      ? [address.line1, address.line2, address.postal_code, address.city, address.country]
-          .filter(Boolean)
-          .join(", ")
-      : null,
+    customerPhone: fromForm?.phone ?? session.customer_details?.phone ?? null,
+    shippingAddress: fromForm
+      ? formatShippingAddress(fromForm)
+      : collected
+        ? [collected.line1, collected.line2, collected.postal_code, collected.city, collected.country]
+            .filter(Boolean)
+            .join(", ")
+        : null,
     lines,
     totalAmount: session.amount_total,
     currency: session.currency,
   };
-}
-
-/**
- * Trimite două emailuri independente: unul către producător (ce are de
- * fabricat) și unul de confirmare către client. Sunt trimise individual, nu
- * prin batch, pentru că batch-ul Resend nu suportă atașamente — de care avem
- * nevoie ca să atașăm factura. Eșecul unuia nu îl blochează pe celălalt.
- */
-async function sendOrderEmails(order: Order): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL;
-  const providerEmail = process.env.PROVIDER_EMAIL;
-
-  if (!apiKey || !from || !providerEmail) {
-    throw new Error(
-      "Configurație incompletă: RESEND_API_KEY, RESEND_FROM_EMAIL sau PROVIDER_EMAIL lipsesc.",
-    );
-  }
-
-  const resend = new Resend(apiKey);
-
-  const deliveries: { label: string; send: () => Promise<{ error: { message: string } | null }> }[] =
-    [
-      {
-        label: "producător",
-        send: () =>
-          resend.emails.send({
-            from,
-            to: [providerEmail],
-            // Atelierul răspunde magazinului (ex. cu AWB-ul), nu clientului.
-            replyTo: SELLER.email,
-            subject: buildProviderSubject(order),
-            html: buildProviderHtml(order),
-          }),
-      },
-    ];
-
-  if (order.customerEmail) {
-    const customerEmail = order.customerEmail;
-    deliveries.push({
-      label: "client",
-      send: () =>
-        resend.emails.send({
-          from,
-          to: [customerEmail],
-          // Expeditorul e o adresă no-reply, deci răspunsurile merg la contactul real
-          // al magazinului — nu la atelier, care nu are relația cu clientul.
-          replyTo: SELLER.email,
-          subject: buildCustomerSubject(order),
-          html: buildCustomerHtml(order),
-        }),
-    });
-  } else {
-    console.warn(
-      `[stripe-webhook] comanda ${order.orderId} nu are email de client — trimit doar către producător.`,
-    );
-  }
-
-  const results = await Promise.allSettled(
-    deliveries.map(async ({ label, send }) => {
-      const { error } = await send();
-      if (error) throw new Error(`emailul către ${label} a fost refuzat: ${error.message}`);
-    }),
-  );
-
-  const failures = results
-    .map((result, i) =>
-      result.status === "rejected"
-        ? `${deliveries[i].label}: ${result.reason instanceof Error ? result.reason.message : result.reason}`
-        : null,
-    )
-    .filter((f): f is string => f !== null);
-
-  if (failures.length > 0) throw new Error(failures.join(" | "));
 }
 
 export async function POST(request: Request): Promise<Response> {

@@ -44,9 +44,10 @@ plafon și variante duplicate sunt respinse cu 400).
 
 La fiecare `checkout.session.completed`, endpoint-ul `/api/stripe/webhook` verifică
 semnătura, extrage varianta și cantitatea, și trimite **două emailuri**: specificațiile
-de fabricație către `PROVIDER_EMAIL` și confirmarea comenzii către client. Sunt trimise
-individual (nu prin `resend.batch`, care nu suportă atașamente) cu `Promise.allSettled`,
-deci eșecul unuia nu îl blochează pe celălalt.
+de fabricație către magazin și atelier (`CONTACT_FORWARD_TO` + `PROVIDER_EMAIL`) și
+confirmarea comenzii către client. Sunt trimise individual (nu prin `resend.batch`,
+care nu suportă atașamente) cu `Promise.allSettled`, deci eșecul unuia nu îl
+blochează pe celălalt.
 
 1. **Stripe:** Developers → API keys → cheia secretă în `STRIPE_SECRET_KEY`.
 2. **Stripe webhook:** Developers → Webhooks → Add endpoint → URL =
@@ -55,25 +56,27 @@ deci eșecul unuia nu îl blochează pe celălalt.
 3. **Resend:** cont gratuit pe resend.com, verifică domeniul `tricouamenda.ro` (adaugă
    recordurile DNS **în Vercel**, nu la registrar — vezi mai jos), creează un API key →
    `RESEND_API_KEY`. `RESEND_FROM_EMAIL` = adresă de pe domeniul verificat.
-4. **`PROVIDER_EMAIL`** → adresa reală a producătorului.
+4. **`PROVIDER_EMAIL`** și **`CONTACT_FORWARD_TO`** → atelier + magazin; contact
+   și comenzi merg la toate adresele. Mai multe inbox-uri, despărțite prin virgulă.
 
 Testare locală: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
 (Stripe CLI) sau `stripe trigger checkout.session.completed`.
 
 ## Adresa de contact (contact@tricouamenda.ro)
 
-Adresa publică din footer nu e un inbox real — e redirectată către inboxul personal, ca
-să nu publicăm o adresă privată. Fluxul: Resend primește mesajul pe domeniu, trimite
+Adresa publică din footer nu e un inbox real — e redirectată către magazin și atelier,
+ca să nu publicăm adrese private. Fluxul: Resend primește mesajul pe domeniu, trimite
 evenimentul `email.received` către `/api/resend/inbound`, care verifică semnătura Svix
 pe corpul brut și cheamă `emails.receiving.forward` cu `passthrough: true` (mesaj
-original + atașamente, neatinse).
+original + atașamente, neatinte) către ambele inbox-uri.
 
 1. Resend → Domains → `tricouamenda.ro` → activează **Receiving**, apoi adaugă în Vercel
    recordul MX primit. Nu intră în conflict cu trimiterea, care folosește subdomeniul
    `send.`
 2. Resend → Webhooks → Add endpoint → `https://tricouamenda.ro/api/resend/inbound`,
    eveniment `email.received`. Signing secret → `RESEND_WEBHOOK_SECRET`.
-3. `CONTACT_FORWARD_TO` = adresa reală unde vrei mesajele.
+3. `CONTACT_FORWARD_TO` și `PROVIDER_EMAIL` = magazin + atelier; contact@ și
+   comenzile ajung la toate adresele (virgulă dacă sunt mai multe).
 
 Ruta întoarce **500** la eșec (spre deosebire de webhook-ul de comenzi, care întoarce
 200), ca Resend să reîncerce: aici o reîncercare chiar poate reuși, iar un email de
